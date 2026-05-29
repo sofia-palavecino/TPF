@@ -63,3 +63,10 @@ class Pared:
     def __init__(self, x, y):
         self.rect = pygame.Rect (x, y, 32, 32)
 
+
+class Puntuacion: 
+    def __init__(self, puntos):
+        self.puntos = puntos
+    def evaluar_vecinos (self, pacman):
+        vecino = Pacman(pacman, vecino_rect)
+        
