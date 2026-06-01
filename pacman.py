@@ -67,6 +67,6 @@ class Pared:
 class Puntuacion: 
     def __init__(self, puntos):
         self.puntos = puntos
-    def evaluar_vecinos (self, pacman):
+    def evaluar_vecinos (self, pacman, vecino_rect):
         vecino = Pacman(pacman, vecino_rect)
         
