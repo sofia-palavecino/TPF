@@ -3,41 +3,66 @@ import pygame
 class Pacman:
     def __init__(self, name, x, y):
         self.name = name
-        self.x = x
-        self.y = y
-        self.ancho = 30
-        self.alto = 30
-        self.velocidad = 5 
+        self.x = x 
+        self.y = y 
+        self.ancho = 15
+        self.alto = 15
+        self.velocidad = 4
         
         self.rect = pygame.Rect(self.x, self.y, self.ancho, self.alto) #crea una "caja" que lo rodea
         self.dir_actual = (0, 0)
         self.dir_deseada = (0, 0)    
-    def move(self, lista_paredes):
+    def move(self, lista_paredes, teclas):
         """
         lista_paredes: En el main, es necesario que haya un for que lea el mapa y guarde las paredes en una lista
         """
     #asignar un significado a cada tecla que es presionada. (wasd)
     #"recuerda" dónde quiere moverse el usuario, para poder ver si puede o no
-        teclas = pygame.key.get_pressed() 
-        if teclas [pygame.path.K_a]:
+        if teclas [pygame.K_a]:
             self.dir_deseada = (-self.velocidad, 0) #izquierda
-        if teclas [pygame.path.K_d]:
+        if teclas [pygame.K_d]:
             self.dir_deseada = (self.velocidad, 0) #derecha
-        if teclas [pygame.path.K_w]:
+        if teclas [pygame.K_w]:
             self.dir_deseada = (0, -self.velocidad) #arriba
-        if teclas [pygame.path.K_s]:
+        if teclas [pygame.K_s]:
             self.dir_deseada = (0, self.velocidad) #abajo
         
         dx_deseado, dy_deseado = self.dir_deseada
-
         if self.puede_moverse(dx_deseado, dy_deseado, lista_paredes): #si se puede mover a esa casilla, la dirección actual cambia a la deseada. 
             self.dir_actual = self.dir_deseada
-        else:
-            self.dir_actual = (0, 0)
+
+        dx_actual, dy_actual = self.dir_actual
+        if self.puede_moverse(dx_actual, dy_actual, lista_paredes):
+            self.x += dx_actual
+            self.y += dy_actual
+        else: #para que se mueva continuamente, aunque el usuario no ingrese una direccion
+            encontro_escp = False
+            direc_posib = [
+                (-self.velocidad, 0), 
+                (self.velocidad, 0), 
+                (0, -self.velocidad),
+                (0, self.velocidad)
+            ]
+            for direccion_p in direc_posib:
+                dx_p, dy_p = direccion_p
+                no_reversa = (dx_p != -dx_actual or dx_actual == 0) and (dy_p != -dy_actual or dy_actual == 0)
+                if self.puede_moverse(dx_p, dy_p, lista_paredes) and no_reversa:
+                    self.dir_actual = direccion_p
+                    self.dir_deseada = direccion_p
+
+                    self.x += dx_p
+                    self.y += dy_p
+                    encontro_escp = True
+                    break
+        #que cruce el tunel y aparezca del otro extremo
+        ancho_pantalla = 616 
+        if self.x < -22:
+            self.x = ancho_pantalla 
+        elif self.x > ancho_pantalla:
+            self.x = -22
 
         self.rect.x = self.x
-        self.rect.y = self.y
-    
+        self.rect.y = self.y 
     def chocar_vecino (self, vecino_rect):
         """
         Devuelve True si se choca el vecino indicado, False si no.
@@ -52,21 +77,62 @@ class Pacman:
         Retorna True si el camino está libre, False si hay una pared
         """
         #Un "tile" en la posición futura
-        rect_futuro = pygame.Rect(self.x + dx, self.y + dy, self.ancho, self.alto)
+        margen = 2
+        rect_futuro = pygame.Rect(self.x + dx + (margen // 2), self.y + dy + (margen // 2), self.ancho - margen, self.alto - margen)
 
         for pared in lista_paredes: #revisa todas las paredes del mapa
             if rect_futuro.colliderect(pared.rect):
                 return False 
         return True
+    
+    def dibujar_pacman(self, pantalla, amarillo):
+        centro_x = int(self.x + 11)
+        centro_y = int(self.y + 11)
+        pygame.draw.circle(pantalla, amarillo, (centro_x, centro_y), 10)
+    
+    def comer(self, lista_comida):
+        punto_comida = 0
+        ya_comio = False
+        for coord in lista_comida:
+            c_x, c_y = coord
+            rect_comida = pygame.Rect (c_x, c_y, 22, 22)
+            if self.rect.colliderect(rect_comida): #si se choca con la comida, lo borra de la lista, suma puntos y devuelve True
+                punto_comida += 10 
+                ya_comio = True
+                lista_comida.remove(coord) 
+        return punto_comida, ya_comio, lista_comida  
+    
+    def power_pellet (self, lista_power):
+        comio_power = False
+        punto_power = 0
+        for coord in lista_power:
+            c_x, c_y = coord
+            rect_power = pygame.Rect (c_x, c_y, 22, 22)
+            if self.rect.colliderect(rect_power):
+                comio_power = True
+                punto_power += 50
+                lista_power.remove(coord)
+                print(comio_power)
+        return punto_power, comio_power, lista_power
+    def choque_fantasma (self, fantasma_rect, vidas):
+        muerte = False
+        if self.rect.colliderect (fantasma_rect):
+            vidas -= 1
+            muerte = True
+        return vidas, muerte
+    
 
 class Pared: 
     def __init__(self, x, y):
-        self.rect = pygame.Rect (x, y, 32, 32)
+        self.rect = pygame.Rect (x, y, 22, 22)
 
 
 class Puntuacion: 
-    def __init__(self, puntos):
-        self.puntos = puntos
-    def evaluar_vecinos (self, pacman, vecino_rect):
-        vecino = Pacman(pacman, vecino_rect)
+    def __init__(self, puntos_comida, puntos_power, puntos_fantasmas):
+        self.puntos_total = puntos_comida + puntos_power + puntos_fantasmas
+
         
+def Modo_asustado(comio_power):
+        if comio_power: 
+            x = 0
+
