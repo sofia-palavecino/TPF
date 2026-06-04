@@ -7,7 +7,7 @@ class Pacman:
         self.y = y 
         self.ancho = 15
         self.alto = 15
-        self.velocidad = 4
+        self.velocidad = 3
         
         self.rect = pygame.Rect(self.x, self.y, self.ancho, self.alto) #crea una "caja" que lo rodea
         self.dir_actual = (0, 0)
@@ -79,7 +79,6 @@ class Pacman:
         #Un "tile" en la posición futura
         margen = 2
         rect_futuro = pygame.Rect(self.x + dx + (margen // 2), self.y + dy + (margen // 2), self.ancho - margen, self.alto - margen)
-
         for pared in lista_paredes: #revisa todas las paredes del mapa
             if rect_futuro.colliderect(pared.rect):
                 return False 
@@ -112,7 +111,6 @@ class Pacman:
                 comio_power = True
                 punto_power += 50
                 lista_power.remove(coord)
-                print(comio_power)
         return punto_power, comio_power, lista_power
     def choque_fantasma (self, fantasma_rect, vidas):
         muerte = False
@@ -120,7 +118,19 @@ class Pacman:
             vidas -= 1
             muerte = True
         return vidas, muerte
-    
+    def comer_fantasma (self, comio_power, lista_fantasmas, punto_fants):
+        if comio_power:
+            for fantasma in lista_fantasmas:
+                f_x, f_y = fantasma
+                rect_fants = pygame.Rect (f_x, f_y, 22, 22)
+                if self.rect.colliderect(rect_fants):
+                    lista_fantasmas.remove(fantasma)
+                    if punto_fants > 0:
+                        punto_fants += punto_fants * 2
+                    else:
+                        punto_fants += 200
+        return lista_fantasmas, punto_fants
+                
 
 class Pared: 
     def __init__(self, x, y):
@@ -132,7 +142,3 @@ class Puntuacion:
         self.puntos_total = puntos_comida + puntos_power + puntos_fantasmas
 
         
-def Modo_asustado(comio_power):
-        if comio_power: 
-            x = 0
-
