@@ -59,3 +59,16 @@ def pantalla_fants(pantalla, fants_elegidos, opciones_fants, lista_colores, ind_
         pantalla.blit(fantasmas_text, (pos_x, pos_y))
         pantalla.blit(descp_text, (pos_x, pos_y + fantasmas_text.get_height()+ 6))
         pos_y += alto_caja + 10 #dar un espacio entre las cajas de las opciones 
+
+def pantalla_game(pantalla, puntaje):
+    pantalla.fill(negro)
+    fuente_game = pygame.font.SysFont("trebuchetms", 30, bold = True)
+    fuente_descp = pygame.font.SysFont("trebuchetms", 20, bold = True)
+    text_game = fuente_game.render("GAME OVER", True, rojo)
+    text_descp = fuente_descp.render (f"Puntaje final: {puntaje}", True, gris)
+    text_descp_1 = fuente_descp.render ("Presione ENTER para volver a la página de inicio", True, gris)
+    pantalla.blit(text_game, (150, 200)) 
+    pantalla.blit(text_descp, (100, 300))
+    pantalla.blit(text_descp_1, (100, 350)) 
+
+

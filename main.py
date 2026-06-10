@@ -7,7 +7,8 @@ from mapa import dibujar_mapa
 from pacman import Puntuacion
 from pantallas import pantalla_main
 from pantallas import pantalla_fants
-pygame.init()
+from pantallas import pantalla_game
+pygame.init() 
 
 lista_paredes = []
 lista_comida = []
@@ -101,13 +102,16 @@ while ejecutando:
                         if opcion_actual not in fants_elegidos:
                             fants_elegidos.append (opcion_actual)
                         if len(fants_elegidos) == 4:
-                            estado = "JUEGO"
+                            estado = "OVER"
         pantalla_fants(pantalla, fants_elegidos, opciones_fants, lista_colores, ind_selecc)
-
+    elif estado == "OVER":
+        puntaje = 0 
+        pantalla_game(pantalla, puntaje)
     elif estado == "JUEGO":
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 ejecutando = False
+        
         pantalla.fill(negro)
         dibujar_mapa(lista_comida, lista_power) 
         
@@ -125,6 +129,9 @@ while ejecutando:
         else:
             pacman_personaje.velocidad * 0.8 #velocidad normal
         #muerte, vidas = pacman_personaje.choque_fantasma(fantasma_rect, vidas)
+    
+    elif estado == "OVER":
+        pantalla_game(pantalla)
     pygame.display.flip()
     
 
