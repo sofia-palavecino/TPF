@@ -1,1 +1,1 @@
-class Fantasma:
+class Fantasma: #clase fantasma y subclase de cada fantasma. herencia.
