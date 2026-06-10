@@ -9,15 +9,21 @@ verde = (0, 128, 0)
 violeta = (128, 0, 128)
 gris = (128, 128, 128)
 
+pacman_foto = pygame.image.load("pacman_abierto.png")
+pacman_abierto = pygame.transform.scale(pacman_foto, (30, 30))
 
-def pantalla_main(pantalla, ancho, tiempo):
+def pantalla_main(pantalla, ancho, tiempo, high_score):
     pantalla.fill(negro)
     fuente_titulo = pygame.font.SysFont("comicans", 60, bold = True)
     fuente_subtitulo = pygame.font.SysFont("trebuchetms", 20)
     texto_titulo = fuente_titulo.render("PAC-MAN", True, amarillo) 
     texto_instrucciones = fuente_subtitulo.render("presiona ENTER para comenzar", True, blanco)
+    texto_high_score = fuente_subtitulo.render("HIGH SCORE", True, blanco)
+    num_high_score = fuente_subtitulo.render (f"{high_score}", True, blanco)
 
     pantalla.blit(texto_titulo, (ancho // 2 - texto_titulo.get_width() // 2, 250)) #centrar el texto
+    pantalla.blit(texto_high_score, (ancho // 2 - texto_high_score.get_width() // 2, 80))
+    pantalla.blit(num_high_score, (ancho // 2 - num_high_score.get_width() // 2, 100))
     if (tiempo // 500) % 2 == 0: #cada 500ms se cumple, ahí se imprime el texto 
         pantalla.blit (texto_instrucciones, (ancho // 2 - texto_instrucciones.get_width() // 2, 400))
     
@@ -67,8 +73,45 @@ def pantalla_game(pantalla, puntaje):
     text_game = fuente_game.render("GAME OVER", True, rojo)
     text_descp = fuente_descp.render (f"Puntaje final: {puntaje}", True, gris)
     text_descp_1 = fuente_descp.render ("Presione ENTER para volver a la página de inicio", True, gris)
-    pantalla.blit(text_game, (150, 200)) 
-    pantalla.blit(text_descp, (100, 300))
-    pantalla.blit(text_descp_1, (100, 350)) 
+    pantalla.blit(text_game, (220, 250))
+    pantalla.blit(text_descp, (240, 300))
+    pantalla.blit(text_descp_1, (80, 350)) 
 
+def margen_mapa(pantalla, score, nivel, high_score, vidas): 
+    fuente_score = pygame.font.SysFont("comicans", 30, bold = True)
+    text_score = fuente_score.render(f"score: {score}", True, amarillo)
+    text_high = fuente_score.render (f"best: {high_score}", True, blanco)
+    fuente_lvl = pygame.font.SysFont("trebuchetms", 20, bold = True)
+    text_lvl = fuente_lvl.render (f"LVL {nivel}", True, blanco)
+    pantalla.blit(text_score, (20, 705))
+    pantalla.blit(text_high, (20, 685))
+    pantalla.blit(text_lvl, (280, 690))
 
+    for i in range(vidas): 
+        centro_x = 450 + 45 * i 
+        pantalla.blit(pacman_abierto, (centro_x, 690))
+    
+def pantalla_esquina (pantalla, fantasma_actual, fants_elegidos, ind_fant, colores_fants, opciones_esquina, esquinas_elegidas):
+    pantalla.fill(negro)
+    fantasma_actual = fants_elegidos[ind_fant] if ind_fant < len(fants_elegidos) else fants_elegidos [-1]
+    color_fant = colores_fants [fantasma_actual] 
+    fuente_elegir = pygame.font.SysFont("Courier New", 28, bold = True)
+    fuente_fants = pygame.font.SysFont("Courier New", 25, bold = True)
+    text_elegir = fuente_elegir.render(f"Asigná una esquina a {fantasma_actual} ({ind_fant + 1}/{len(fants_elegidos)})", True, color_fant)
+    pantalla.blit(text_elegir, (35, 40))
+    pos_y = 120
+    for i, opcion in enumerate (opciones_esquina):
+        numero = fuente_fants.render(f"{i + 1}", True, color_fant)
+        texto = fuente_fants.render(opcion, True, gris)
+        pantalla.blit(numero, (160, pos_y))
+        pantalla.blit(texto, (200, pos_y))
+        pos_y += 60 
+    #resumen de lo que va haciendo el usuario para saber si ya eligió la opción
+    fuente_resumen = pygame.font.SysFont("Courier New", 18)
+    pos_y_resumen = 500
+    for nombre, esquina in esquinas_elegidas.items():
+        color = colores_fants [nombre]
+        texto_resumen= fuente_resumen.render (f"{nombre}: {esquina}", True, color)
+        pantalla.blit(texto_resumen, (160, pos_y_resumen))
+        pos_y_resumen += 30
+    

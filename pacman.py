@@ -1,5 +1,8 @@
 import pygame
 
+pacman_abierto = pygame.image.load("pacman_abierto.png")
+pacman_cerrado = pygame.image.load("pacman_cerrado.png")
+
 class Pacman:
     def __init__(self, name, x, y):
         self.name = name
@@ -7,7 +10,7 @@ class Pacman:
         self.y = y 
         self.ancho = 22
         self.alto = 22
-        self.velocidad = 2
+        self.velocidad = 3 
         
         self.rect = pygame.Rect(self.x, self.y, self.ancho, self.alto) #crea una "caja" que lo rodea
         self.dir_actual = (0, 0)
@@ -86,11 +89,20 @@ class Pacman:
                 return False 
         return True
     
-    def dibujar_pacman(self, pantalla, amarillo):
-        centro_x = int(self.x + 11)
-        centro_y = int(self.y + 11)
-        pygame.draw.circle(pantalla, amarillo, (centro_x, centro_y), 10)
-    
+    def dibujar_pacman(self, pantalla):
+        frame = (pygame.time.get_ticks() // 150) % 2
+        sprite = pacman_abierto if frame == 0 else pacman_cerrado
+        sprite = pygame.transform.scale(sprite, (self.ancho, self.alto))
+        if self.dir_deseada == (-self.velocidad, 0): #si va a la izquierda, rota la imagen 180 grados
+            angulo = 180
+        elif self.dir_deseada == (0, -self.velocidad):
+            angulo = 90
+        elif self.dir_deseada == (0, self.velocidad):
+            angulo = 270
+        else:  
+            angulo = 0
+        sprite_rotado = pygame.transform.rotate(sprite, angulo)
+        pantalla.blit(sprite_rotado, (self.x, self.y))        
     def comer(self, lista_comida):
         punto_comida = 0
         ya_comio = False
@@ -121,18 +133,18 @@ class Pacman:
             vidas -= 1
             muerte = True
         return vidas, muerte
-    def comer_fantasma (self, comio_power, lista_fantasmas, punto_fants):
+    def comer_fantasma (self, comio_power, lista_fantasmas, fantasmas_comidos):
+        puntos_fants = 0
+        comio_fantasma = False
         if comio_power:
             for fantasma in lista_fantasmas:
                 f_x, f_y = fantasma
                 rect_fants = pygame.Rect (f_x, f_y, 22, 22)
                 if self.rect.colliderect(rect_fants):
                     lista_fantasmas.remove(fantasma)
-                    if punto_fants > 0:
-                        punto_fants += punto_fants * 2
-                    else:
-                        punto_fants += 200
-        return lista_fantasmas, punto_fants
+                    comio_fantasma = True
+                    puntos_fants += 200 * fantasmas_comidos
+        return lista_fantasmas, puntos_fants, comio_fantasma 
                 
 
 class Pared: 

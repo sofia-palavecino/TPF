@@ -76,4 +76,3 @@ def dibujar_mapa(lista_comida, lista_power):
                 pygame.draw.rect(pantalla, negro, (x, y, tamaño_bloque, tamaño_bloque), 1)
             elif caracter == '-':
                 pygame.draw.line(pantalla, rosa, (x, centro_y), (x + tamaño_bloque, centro_y), 3)
-    
