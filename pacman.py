@@ -5,9 +5,9 @@ class Pacman:
         self.name = name
         self.x = x 
         self.y = y 
-        self.ancho = 15
-        self.alto = 15
-        self.velocidad = 3
+        self.ancho = 22
+        self.alto = 22
+        self.velocidad = 2
         
         self.rect = pygame.Rect(self.x, self.y, self.ancho, self.alto) #crea una "caja" que lo rodea
         self.dir_actual = (0, 0)
@@ -28,33 +28,35 @@ class Pacman:
             self.dir_deseada = (0, self.velocidad) #abajo
         
         dx_deseado, dy_deseado = self.dir_deseada
+        dx_actual, dy_actual = self.dir_actual 
+        
+        pos_x_original = self.x
+        pos_y_original = self.y
+
+        if dx_deseado != 0 and dy_actual != 0:
+            self.y = round(self.y / 22) * 22
+        elif dy_deseado != 0 and dx_actual != 0: 
+            self.x = round(self.x / 22) * 22
+
+        self.rect.x = self.x
+        self.rect.y = self.y
+
         if self.puede_moverse(dx_deseado, dy_deseado, lista_paredes): #si se puede mover a esa casilla, la dirección actual cambia a la deseada. 
             self.dir_actual = self.dir_deseada
-
-        dx_actual, dy_actual = self.dir_actual
+        else:
+            self.x = pos_x_original
+            self.y = pos_y_original
+            self.rect.x = self.x
+            self.rect.y = self.y
+        
+        dx_actual, dy_actual = self.dir_actual 
         if self.puede_moverse(dx_actual, dy_actual, lista_paredes):
             self.x += dx_actual
-            self.y += dy_actual
-        else: #para que se mueva continuamente, aunque el usuario no ingrese una direccion
-            encontro_escp = False
-            direc_posib = [
-                (-self.velocidad, 0), 
-                (self.velocidad, 0), 
-                (0, -self.velocidad),
-                (0, self.velocidad)
-            ]
-            for direccion_p in direc_posib:
-                dx_p, dy_p = direccion_p
-                no_reversa = (dx_p != -dx_actual or dx_actual == 0) and (dy_p != -dy_actual or dy_actual == 0)
-                if self.puede_moverse(dx_p, dy_p, lista_paredes) and no_reversa:
-                    self.dir_actual = direccion_p
-                    self.dir_deseada = direccion_p
-
-                    self.x += dx_p
-                    self.y += dy_p
-                    encontro_escp = True
-                    break
+            self.y += dy_actual 
+        else: 
+            self.dir_actual = (0, 0)
         #que cruce el tunel y aparezca del otro extremo
+        
         ancho_pantalla = 616 
         if self.x < -22:
             self.x = ancho_pantalla 
@@ -112,6 +114,7 @@ class Pacman:
                 punto_power += 50
                 lista_power.remove(coord)
         return punto_power, comio_power, lista_power
+    
     def choque_fantasma (self, fantasma_rect, vidas):
         muerte = False
         if self.rect.colliderect (fantasma_rect):
@@ -141,4 +144,4 @@ class Puntuacion:
     def __init__(self, puntos_comida, puntos_power, puntos_fantasmas):
         self.puntos_total = puntos_comida + puntos_power + puntos_fantasmas
 
-        
+    
