@@ -113,5 +113,4 @@ def pantalla_esquina (pantalla, fantasma_actual, fants_elegidos, ind_fant, color
         color = colores_fants [nombre]
         texto_resumen= fuente_resumen.render (f"{nombre}: {esquina}", True, color)
         pantalla.blit(texto_resumen, (160, pos_y_resumen))
-        pos_y_resumen += 30
-    
+        pos_y_resumen += 30 
