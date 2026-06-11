@@ -3,6 +3,7 @@ from pacman import Pared, Pacman, Puntuacion
 from mapa import cargar_mapa, verificar_mapa, dibujar_mapa
 from pantallas import pantalla_main, pantalla_fants, pantalla_game, margen_mapa, pantalla_esquina
 pygame.init() 
+pygame.mixer.init() 
 
 lista_paredes = []
 lista_comida = []
@@ -53,6 +54,16 @@ verde = (0, 128, 0)
 violeta = (128, 0, 128)
 gris = (128, 128, 128)
 
+#sonidos:
+sonido_comer = pygame.mixer.Sound ("comer_punto.mp3")
+sonido_power = pygame.mixer.Sound ("comer_pellet.mp3")
+sonido_intro = pygame.mixer.Sound ("intro.mp3")
+sonido_muerte_fants = pygame.mixer.Sound("muerte_fants.mp3")
+sonido_muerte_pacman = pygame.mixer.Sound ("muerte_pacman.mp3") #falta agregarlo a cuando muere
+sonido_nivel = pygame.mixer.Sound ("nivel.mp3")
+sonido_vida_extra = pygame.mixer.Sound ("vida_extra.mp3")
+sonido_select = pygame.mixer.Sound ("select.mp3") 
+
 #datos para comenzar pygame:
 reloj = pygame.time.Clock()
 ejecutando = True
@@ -93,8 +104,10 @@ while ejecutando:
                 if evento.key == pygame.K_RETURN:
                     estado = "MENU_FANTS"
         pantalla_main(pantalla, ancho, tiempo, high_score)
+        sonido_intro.play() 
 
     elif estado == "MENU_FANTS": #página de elegir los fantasmas
+        sonido_intro.stop()
         for evento in pygame.event.get(): 
             if evento.type == pygame.QUIT:
                 ejecutando = False
@@ -108,6 +121,7 @@ while ejecutando:
                     if ind_selecc < 0:
                         ind_selecc = len(claves_fants) - 1
                 elif evento.key == pygame.K_RETURN:
+                    sonido_select.play()
                     if len(fants_elegidos) < 4: 
                         opcion_actual = claves_fants[ind_selecc]
                         if opcion_actual not in fants_elegidos:
@@ -125,11 +139,12 @@ while ejecutando:
                     fantasma_actual = fants_elegidos[ind_fant]
                     esquinas_elegidas[fantasma_actual] = opciones_esquina[teclas_num[evento.key]]
                     ind_fant += 1
+                    sonido_select.play()
                     if ind_fant >= len (fants_elegidos):
                         estado = "JUEGO"
         pantalla_esquina(pantalla, fantasma_actual, fants_elegidos, ind_fant, colores_fants, opciones_esquina, esquinas_elegidas)
         
-    elif estado == "JUEGO":
+    elif estado == "JUEGO": 
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 ejecutando = False
@@ -142,7 +157,11 @@ while ejecutando:
         pacman_personaje.move(lista_paredes, teclas)
         pacman_personaje.dibujar_pacman(pantalla)
         punto_comida, ya_comio, lista_comida = pacman_personaje.comer(lista_comida)
+        if ya_comio: 
+            sonido_comer.play() 
         punto_power, comio_power, lista_power = pacman_personaje.power_pellet(lista_power)
+        if comio_power:
+            sonido_power.play()
         score += punto_comida
         score += punto_power
         if comio_power: #si comio power pellet se activa el modo asustado
@@ -161,19 +180,27 @@ while ejecutando:
                 #lista_fantasmas, puntos_fants, comio_fantasma = pacman_personaje.comer_fantasma(comio_power, lista_fants, punto_fants, fantasmas_comidos) 
                 #if comio_fantasma: 
                     #fantasmas_comidos += 1
+                    #sonido_muerte_fants.play() 
                 #muerte, vidas = pacman_personaje.choque_fantasma(fantasma_rect, vidas) a
+
                 
         if len(lista_comida) == 0: #si se termina la comida, avanza un nivel
             nivel += 1
+            sonido_nivel.play() 
             lista_comida = lista_comida_orig #que se regenere la comida del mapa original
-            lista_power = lista_power_orig
+            lista_power = lista_power_orig 
+            fuente_titulo = pygame.font.SysFont("comicans", 60, bold = True)
+            texto_titulo = fuente_titulo.render("PAC-MAN", True, amarillo) 
+            pantalla.blit(texto_titulo, (ancho // 2 - texto_titulo.get_width() // 2, 250))
 
         if vidas == 0: #si se queda sin vidas pasa a la pantalla de game over
             estado = "OVER" 
+
         
         if score == 10000: #si llega a 10mil puntos se le suma una vida
             vidas += 1
-
+            sonido_vida_extra.play() 
+        
     elif estado == "OVER":
         for evento in pygame.event.get(): 
             if evento.type == pygame.QUIT:
