@@ -66,7 +66,7 @@ def dibujar_mapa():
             centro_y = y + tamaño_bloque // 2
 
             if caracter == 'X':
-                pygame.draw.rect(pantalla, azul, (x, y, tamaño_bloque, tamaño_bloque), 1)
+                pygame.draw.rect(pantalla, azul, (x, y, tamaño_bloque, tamaño_bloque), 2)
             elif caracter == '.':
                 pygame.draw.circle(pantalla, blanco, (centro_x, centro_y), 2)
             elif caracter == 'o':
