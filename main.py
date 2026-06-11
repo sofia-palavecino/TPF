@@ -16,7 +16,7 @@ pacman_x = 0
 pacman_y = 0
 with open ("mapa.txt", "r") as archivo: 
     for fila, linea in enumerate (archivo):
-        for columna, caracter in enumerate (linea):
+        for columna, caracter in enumerate (linea): 
             y = fila * tamaño_bloque
             x = columna * tamaño_bloque
 
