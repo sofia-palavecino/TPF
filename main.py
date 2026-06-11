@@ -1,16 +1,7 @@
 import pygame
-from pacman import Pared
-from pacman import Pacman
-from mapa import cargar_mapa
-from mapa import verificar_mapa
-from mapa import dibujar_mapa
-from pacman import Puntuacion
-from pantallas import pantalla_main
-from pantallas import pantalla_fants
-from pantallas import pantalla_game
-from pantallas import margen_mapa
-from pantallas import pantalla_esquina
-
+from pacman import Pared, Pacman, Puntuacion
+from mapa import cargar_mapa, verificar_mapa, dibujar_mapa
+from pantallas import pantalla_main, pantalla_fants, pantalla_game, margen_mapa, pantalla_esquina
 pygame.init() 
 pygame.mixer.init() 
 
