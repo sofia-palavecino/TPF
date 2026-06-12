@@ -12,6 +12,7 @@ lista_comida_orig = [] #para guardar la comida del mapa original y poder regener
 lista_power = []
 lista_power_orig = []
 lista_fants = [] #falta ver cómo obtener las coordenadas de los fantasmas en una lista, para saber dónde están y ver si se lo chocan a pacman
+dicc_fantasmas={} # TENGO QUE VER COMO CREARLO Y INSERTARLE LAS COORDENANDAS Y EL MODO ACTUAL DE CADA FANTASMA
 tamaño_bloque = 22
 pacman_x = 0 
 pacman_y = 0
