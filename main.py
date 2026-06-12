@@ -1,5 +1,5 @@
 import pygame
-from pacman import Pared, Pacman, Puntuacion
+from pacman import Pared, Pacman
 from mapa import cargar_mapa, verificar_mapa, dibujar_mapa
 from pantallas import pantalla_main, pantalla_fants, pantalla_game, margen_mapa, pantalla_esquina
 from fantasmas import Pinky, Blinky
@@ -76,7 +76,7 @@ score = 0
 punto_fants = 0
 nivel = 1  
 high_score = 0
-puntos_fantasmas_escala = [200, 400, 800, 1600]
+puntos_fantasmas_escala = [200, 400, 800, 1600] 
 fantasmas_comidos_en_racha = 0
 ya_recibio_vida_extra = False
 #pantalla fantasmas: 
@@ -103,7 +103,7 @@ tiempo_susto = 0
 fantasmas_comidos = 0
 # variables para fantasmas
 tiempo_fase_inicio = 0
-indice_fase_actual = 0
+indice_fase_actual = 0 
 fase_actual = 1 # 1: Scatter (7s), 2: Chase(20s), 3: Scatter(7s), etc.
 tabla_fases = [
     {"modo": "Scatter", "duracion": 7.0},
@@ -116,6 +116,34 @@ tabla_fases = [
     {"modo": "Chase", "duracion": float('inf')}
 ]
 fantasmas_inicializados = False
+
+def reiniciar_juego(): #funcion para cargar todos los datos de cero
+    global score, vidas, nivel, lista_comida, lista_power, fants_elegidos
+    global esquinas_elegidas, ind_fant, modo_asustado, tiempo_susto
+
+    score = 0
+    vidas = 3
+    nivel = 1
+    modo_asustado = False
+    tiempo_susto = 0
+    ind_fant = 0
+    fants_elegidos = []
+    esquinas_elegidas = {}
+    lista_comida = lista_comida_orig
+    lista_power = lista_power_orig
+    pacman_personaje.dir_actual = (0, 0)
+    pacman_personaje.dir_deseada = (0, 0)
+    lista_paredes = []
+    lista_comida = []
+    lista_fants = [] 
+    tamaño_bloque = 22
+    pacman_personaje.x = pacman_x
+    pacman_personaje.y = pacman_y
+    tiempo_fase_inicio = 0
+    indice_fase_actual = 0
+    fase_actual = 1
+    fantasmas_inicializados = False
+    puntos_fantasmas_escala = [200, 400, 800, 1600]
 
 while ejecutando:
     reloj.tick(60)
@@ -310,10 +338,12 @@ while ejecutando:
                 ejecutando = False 
             if evento.type == pygame.KEYDOWN:
                 if evento.key == pygame.K_RETURN:
+                    reiniciar_juego()
                     estado = "MENU"
+
         pantalla_game(pantalla, score) 
 
         
     pygame.display.flip()
 
-pygame.draw.rect
+pygame.draw.rect 
