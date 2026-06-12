@@ -105,7 +105,7 @@ class Blinky(Fantasma):
     def __init__(self, x, y, tile_esquina):
         super().__init__(x, y, (255, 0, 0), tile_esquina)
     
-    def actualizar_objetivo(self, pacman_tile, pacman_dir=None):
+    def actualizar_objetivo_blinky(self, pacman_tile, pacman_dir=None):
         if self.modo == "Scatter":
             self.tile_objetivo = self.tile_esquina
         elif self.modo == "Chase":
@@ -118,7 +118,7 @@ class Pinky(Fantasma):
     def __init__(self, x, y, tile_esquina):
         super().__init__(x, y, (255, 184, 255), tile_esquina)
     
-    def actualizar_objetivo(self, pacman_tile, pacman_dir):
+    def actualizar_objetivo_pinky(self, pacman_tile, pacman_dir):
         if self.modo == "Scatter":
             self.tile_objetivo = self.tile_esquina
         elif self.modo == "Chase":
@@ -153,7 +153,7 @@ class Inky(Fantasma): # tal vez sería mejor que en dicc_fantasmas se guarde tam
     def calcular_vector(self):
         self.vector = [self.pivot[0]-self.punto_cero[0], self.pivot[1]-self.punto_cero[1]]
 
-    def actualizar_objetivo(self, dicc_fantasmas, pacman_tile, pacman_dir):
+    def actualizar_objetivo_inky(self, dicc_fantasmas, pacman_tile, pacman_dir):
         if self.modo == "Scatter":
             self.tile_objetivo = self.tile_esquina
         elif self.modo == "Chase":
@@ -161,6 +161,23 @@ class Inky(Fantasma): # tal vez sería mejor que en dicc_fantasmas se guarde tam
             self.elegir_punto_cero(pacman_tile, pacman_dir)
             self.calcular_vector()
             self.tile_objetivo = (self.punto_cero[0]-self.vector[0], self.punto_cero[1]-self.vector[1])
+
+class Clyde(Fantasma):
+    def __init__(self, x, y, tile_esquina):
+        super().__init__(x, y, (250, 171, 52), tile_esquina)
+        self.distancia_clyde_y_pacman = 0
+
+    def actualizar_objetivo_clyde(self, pacman_tile):
+        if self.modo == "Scatter":
+            self.tile_objetivo = self.tile_esquina
+        elif self.modo == "Chase":
+            self.distancia_clyde_y_pacman = self.calcular_distancia((self.x,self.y), pacman_tile)
+            if self.distancia_clyde_y_pacman > 8:
+                self.tile_objetivo = pacman_tile
+            else:
+                self.tile_objetivo = self.tile_esquina
+            
+
 
 # IDEAS
 # hacer que se printee una x en el tile objetivo así corroborar si están funcionando bien los algoritmos
