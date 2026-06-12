@@ -1,8 +1,6 @@
 import pygame
 pygame.init()
 
-tamaño_bloque = 22
-
 def cargar_mapa(nombre):
     mapa_cargado = []
     try:
@@ -21,25 +19,25 @@ def verificar_mapa(mapa):
     cuenta_ghost_house = 0
     
     if len(mapa) != 31:
-        raise ValueError('Error: el alto es distinto.')
+        raise ValueError('el alto es distinto.')
     
     for num, linea in enumerate(mapa, 1):
         if len(linea) != 28:
-            raise ValueError(f'Error en fila {num}: la fila tiene un largo distinto.')
+            raise ValueError(f'la fila {num} tiene un largo distinto.')
         for caracter in linea:
             if caracter not in caracteres_permitidos:
-                raise ValueError(f'Error en la fila {num}: la fila tiene un caracter desconocido "{caracter}".')
+                raise ValueError(f'la fila {num} tiene un caracter desconocido "{caracter}".')
             if caracter == 'P':
                 cuenta_pacman += 1
             elif caracter == 'G':
                 cuenta_ghost_house += 1
     if cuenta_pacman == 0:
-        raise ValueError('Error: falta la posición de Pac-Man.')
+        raise ValueError('falta la posición de Pac-Man.')
     elif cuenta_pacman > 1:
-        raise ValueError('Error: sólo debe haber una posición de Pac-Man.')
+        raise ValueError('sólo debe haber una posición de Pac-Man.')
     
     if cuenta_ghost_house == 0:
-        raise ValueError('Error: no hay ghost house.')
+        raise ValueError('no hay ghost house.')
     
     return mapa
 
