@@ -126,7 +126,7 @@ class Pinky(Fantasma):
             self.tile_objetivo = (pacman_tile[0] + dx * 4, pacman_tile[1] + dy * 4) # para que esté 4 posiciones adelante de la dirección actual de Pac-Man
 
 
-class Inky(Fantasma): # tal vez sería mejor que en dicc_fantasmas se guarde también el estado de los fantasmas. por ejemplo, no se toman en cuenta las coor de blinky si está en modo ojos 
+class Inky(Fantasma): # tal vez sería mejor que en dicc_fantasmas se guarde también el estado de los fantasmas. por ejemplo, no se toman en cuenta las coor de blinky si está en modo ojos --> crear el dicc_fantasmas en paralelo a la lista_fants
     def __init__(self, x, y, tile_esquina):
         super().__init__(x, y, (15, 250, 242), tile_esquina)
         self.pivot = None
@@ -164,3 +164,5 @@ class Inky(Fantasma): # tal vez sería mejor que en dicc_fantasmas se guarde tam
 
 # IDEAS
 # hacer que se printee una x en el tile objetivo así corroborar si están funcionando bien los algoritmos
+# the wizard: wizzy. envenena a pacman cuando colisionan. pacman se pone verde en el modo embrujado. si comes powerpellet se rompe el embrujo. este fantasma va a ser violeta
+# the guardian: blanco. su funcion es crear un escudo para pacman cuando estas en chase indefinido. twinky
