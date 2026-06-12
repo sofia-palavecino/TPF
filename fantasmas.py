@@ -1,6 +1,7 @@
 import pygame
 import math
 import random 
+
 class Fantasma:
     def __init__(self, x, y, color, tile_esquina, tamaño_tile=22):
         self.tamaño_tile = tamaño_tile
@@ -100,9 +101,6 @@ class Fantasma:
         pygame.draw.circle(pantalla, color_render, (int(self.px + self.tamaño_tile//2), int(self.py + self.tamaño_tile//2)), self.tamaño_tile//2 - 2)
 
     
-
-
-
 class Blinky(Fantasma):
     def __init__(self, x, y, tile_esquina):
         super().__init__(x, y, (255, 0, 0), tile_esquina)
@@ -128,8 +126,41 @@ class Pinky(Fantasma):
             self.tile_objetivo = (pacman_tile[0] + dx * 4, pacman_tile[1] + dy * 4) # para que esté 4 posiciones adelante de la dirección actual de Pac-Man
 
 
-class Inky(Fantasma):
+class Inky(Fantasma): # tal vez sería mejor que en dicc_fantasmas se guarde también el estado de los fantasmas. por ejemplo, no se toman en cuenta las coor de blinky si está en modo ojos 
     def __init__(self, x, y, tile_esquina):
         super().__init__(x, y, (15, 250, 242), tile_esquina)
+        self.pivot = None
+        self.punto_cero = None
+        self.vector = None
 
-    #def definir_objetivo(self, ):
+    def elegir_pivot(self, dicc_fantasmas): # dicc_fantasmas me permite usar a un fantasma random como pivot si blinky no está en la partida. dicc fantasma tiene LISTAS de posicion de cada fantasma
+        if "Blinky" in dicc_fantasmas: # esto depende de qué hagamos con cada fantasma cuando es comido: desparece? sus coordenadas están vacías o en la ghost house?
+            self.pivot = dicc_fantasmas["Blinky"]
+        else:
+            opciones_pivot=[]
+            for nombre in dicc_fantasmas:
+                if nombre != "Inky":
+                    opciones_pivot.append(nombre)
+            if len(opciones_pivot)==0: # si solo queda inky --> CONSULTAR: qué les parece que hagamos si solo queda inky? opciones: tileesquina, que haga lo mismo que blinky o que se use a sí mismo de pivot
+                self.pivot = dicc_fantasmas["Inky"]
+            else:
+                self.pivot = dicc_fantasmas[random.choice(opciones_pivot)] # para chequear: que pasa si solo está disponible inky en la partida? existe tal escenario?
+
+    def elegir_punto_cero(self, pacman_tile, pacman_dir):
+        dx, dy = pacman_dir
+        self.punto_cero = [pacman_tile[0] + dx * 2, pacman_tile[1] + dy * 2]
+
+    def calcular_vector(self):
+        self.vector = [self.pivot[0]-self.punto_cero[0], self.pivot[1]-self.punto_cero[1]]
+
+    def actualizar_objetivo(self, dicc_fantasmas, pacman_tile, pacman_dir):
+        if self.modo == "Scatter":
+            self.tile_objetivo = self.tile_esquina
+        elif self.modo == "Chase":
+            self.elegir_pivot(dicc_fantasmas)
+            self.elegir_punto_cero(pacman_tile, pacman_dir)
+            self.calcular_vector()
+            self.tile_objetivo = (self.punto_cero[0]-self.vector[0], self.punto_cero[1]-self.vector[1])
+
+# IDEAS
+# hacer que se printee una x en el tile objetivo así corroborar si están funcionando bien los algoritmos
