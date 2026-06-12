@@ -1,7 +1,6 @@
 import pygame
 import math
-import random
-
+import random 
 class Fantasma:
     def __init__(self, x, y, color, tile_esquina, tamaño_tile=22):
         self.tamaño_tile = tamaño_tile

@@ -152,8 +152,4 @@ class Pared:
         self.rect = pygame.Rect (x, y, 22, 22)
 
 
-class Puntuacion: 
-    def __init__(self, puntos_comida, puntos_power, puntos_fantasmas):
-        self.puntos_total = puntos_comida + puntos_power + puntos_fantasmas
-
     
