@@ -7,12 +7,13 @@ pygame.init()
 pygame.mixer.init() 
 
 lista_paredes = []
+lista_ghost_house = []
 lista_comida = []
 lista_comida_orig = [] #para guardar la comida del mapa original y poder regenerarla en el siguiente nivel
 lista_power = []
 lista_power_orig = []
 lista_fants = [] #falta ver cómo obtener las coordenadas de los fantasmas en una lista, para saber dónde están y ver si se lo chocan a pacman
-dicc_fantasmas={} # TENGO QUE VER COMO CREARLO Y INSERTARLE LAS COORDENANDAS Y EL MODO ACTUAL DE CADA FANTASMA
+dicc_fantasmas = {} # TENGO QUE VER COMO CREARLO Y INSERTARLE LAS COORDENANDAS Y EL MODO ACTUAL DE CADA FANTASMA
 tamaño_bloque = 22
 pacman_x = 0 
 pacman_y = 0
@@ -25,6 +26,8 @@ with open ("mapa.txt", "r") as archivo:
             if caracter == "X":
                 nueva_pared = Pared (x, y)
                 lista_paredes.append(nueva_pared)
+            elif caracter == "G":
+                lista_ghost_house.append((columna, fila))
             elif caracter == "P":
                 pacman_x = x 
                 pacman_y = y
@@ -119,33 +122,65 @@ tabla_fases = [
 ]
 fantasmas_inicializados = False
 
-def reiniciar_juego(): #funcion para cargar todos los datos de cero
+def reiniciar_juego(): # funcion para cargar todos los datos de cero
     global score, vidas, nivel, lista_comida, lista_power, fants_elegidos
     global esquinas_elegidas, ind_fant, modo_asustado, tiempo_susto
-
+    global tiempo_fase_inicio, indice_fase_actual, fase_actual, fantasmas_inicializados
+    global lista_fants, puntos_fantasmas_escala, ya_recibio_vida_extra
+    
+    fants_elegidos = []        
+    esquinas_elegidas = {}     
+    ind_fant = 0               
+    ind_selecc = 0           
+    fantasma_actual = claves_fants[ind_selecc]
     score = 0
     vidas = 3
     nivel = 1
     modo_asustado = False
     tiempo_susto = 0
-    ind_fant = 0
-    fants_elegidos = []
-    esquinas_elegidas = {}
-    lista_comida = lista_comida_orig
-    lista_power = lista_power_orig
-    pacman_personaje.dir_actual = (0, 0)
-    pacman_personaje.dir_deseada = (0, 0)
-    lista_paredes = []
-    lista_comida = []
-    lista_fants = [] 
-    tamaño_bloque = 22
+    ya_recibio_vida_extra = False
+    puntos_fantasmas_escala = [200, 400, 800, 1600]
+    
+    lista_comida = list(lista_comida_orig)
+    lista_power = list(lista_power_orig)
+    
     pacman_personaje.x = pacman_x
     pacman_personaje.y = pacman_y
-    tiempo_fase_inicio = 0
+    pacman_personaje.rect.x = pacman_x
+    pacman_personaje.rect.y = pacman_y
+    pacman_personaje.dir_actual = (0, 0)
+    pacman_personaje.dir_deseada = (0, 0)
+    
+    lista_fants = []
+    
+    for i, nombre_f in enumerate(fants_elegidos):
+        esquina_texto = esquinas_elegidas[nombre_f]
+        tile_esquina_real = coordenadas_esquinas[esquina_texto]
+
+        g_col, g_fil = lista_ghost_house[i % len(lista_ghost_house)]
+
+        if nombre_f == 'Blinky':
+            nuevo_fant = Blinky(g_col, g_fil, tile_esquina_real)
+        elif nombre_f == 'Pinky':
+            nuevo_fant = Pinky(g_col, g_fil, tile_esquina_real)
+        else:
+            continue
+
+        nuevo_fant.px = g_col * tamaño_bloque
+        nuevo_fant.py = g_fil * tamaño_bloque
+        nuevo_fant.direccion_actual = "IZQUIERDA"
+
+        nuevo_fant.activo = True if i == 0 else False
+        nuevo_fant.orden_salida = i
+        nuevo_fant.modo = "Scatter"
+        nuevo_fant.velocidad_actual = nuevo_fant.velocidades_dict[nuevo_fant.modo]
+
+        lista_fants.append(nuevo_fant)
+
+    tiempo_fase_inicio = pygame.time.get_ticks()
     indice_fase_actual = 0
     fase_actual = 1
-    fantasmas_inicializados = False
-    puntos_fantasmas_escala = [200, 400, 800, 1600]
+    fantasmas_inicializados = True
 
 while ejecutando:
     reloj.tick(60)
@@ -199,18 +234,24 @@ while ejecutando:
                         sonido_select.play() 
                         if ind_fant >= len (fants_elegidos):
                             lista_fants = []
-                            ghost_house_x, ghost_house_y = 13, 11
 
-                            for nombre_f in fants_elegidos:
+                            for i, nombre_f in enumerate(fants_elegidos):
                                 esquina_texto = esquinas_elegidas[nombre_f]
                                 tile_esquina_real = coordenadas_esquinas[esquina_texto]
-
-                            if nombre_f == 'Blinky':
-                                nuevo_fant = Blinky(ghost_house_x, ghost_house_y, tile_esquina_real)
-                            elif nombre_f == 'Pinky':
-                                nuevo_fant = Pinky(ghost_house_x, ghost_house_y, tile_esquina_real)
                                 
-                                lista_fants.append(nuevo_fant)
+                                g_col, g_fil = lista_ghost_house[i % len(lista_ghost_house)]
+
+                                if nombre_f == 'Blinky':
+                                    nuevo_fant = Blinky(g_col, g_fil, tile_esquina_real)
+                                elif nombre_f == 'Pinky':
+                                    nuevo_fant = Pinky(g_col, g_fil, tile_esquina_real)
+                                
+                                nuevo_fant.activo = True if i == 0 else False
+                                nuevo_fant.orden_salida = i
+                                
+                                if nombre_f in ['Blinky', 'Pinky']:
+                                    lista_fants.append(nuevo_fant)
+                            
                             tiempo_fase_inicio = pygame.time.get_ticks()
                             fase_actual = 1
                             estado = "JUEGO"
@@ -287,16 +328,27 @@ while ejecutando:
                     #fantasmas_comidos += 1
                     #sonido_muerte_fants.play() 
                 #muerte, vidas = pacman_personaje.choque_fantasma(fantasma_rect, vidas) a
-        
+        dot_comidos = len(lista_comida_orig) - len(lista_comida)
+
         for f in lista_fants:
-            f.actualizar_posicion(mapa)
-            
+            if not f.activo:
+                if f.orden_salida == 1 and dot_comidos >= 30:
+                    f.activo = True
+                elif f.orden_salida == 2 and dot_comidos >= 60:
+                    f.activo = True
+                elif f.orden_salida == 3 and dot_comidos >= 90:
+                    f.activo = True
+            if not f.activo:
+                f.dibujar(pantalla)
+                continue
+
             if int(f.px) % tamaño_bloque < f.velocidad_actual and int(f.py) % tamaño_bloque < f.velocidad_actual: # verifico que esté alineado a una celda
                 f.px = f.x * tamaño_bloque
                 f.py = f.y * tamaño_bloque
                 f.actualizar_objetivo(pacman_tile, pacman_dir_matriz)
                 f.decidir_sig_direccion(mapa)
             
+            f.actualizar_posicion(mapa)
             f.dibujar(pantalla)
 
             rect_fantasma_actual = pygame.Rect(f.px, f.py, tamaño_bloque, tamaño_bloque)
@@ -317,6 +369,17 @@ while ejecutando:
                     pacman_personaje.dir_actual = (0, 0)
                     pacman_personaje.dir_deseada = (0, 0)
 
+                    for i, fant in enumerate(lista_fants):
+                        g_col, g_fil = lista_ghost_house[i % len(lista_ghost_house)]
+                        fant.x = g_col
+                        fant.y = g_fil
+                        fant.px = g_col * tamaño_bloque
+                        fant.py = g_fil * tamaño_bloque
+                        fant.direccion_actual = "IZQUIERDA"
+                        fant.cambiar_modo("Scatter")
+                        fant.activo = True if i == 0 else False
+                    
+                    pygame.time.delay(1000)
                     break
                 
         if len(lista_comida) == 0: #si se termina la comida, avanza un nivel
