@@ -64,6 +64,7 @@ sonido_muerte_pacman = pygame.mixer.Sound ("muerte_pacman.mp3") #falta agregarlo
 sonido_nivel = pygame.mixer.Sound ("nivel.mp3")
 sonido_vida_extra = pygame.mixer.Sound ("vida_extra.mp3")
 sonido_select = pygame.mixer.Sound ("select.mp3") 
+sonido_denied = pygame.mixer.Sound ("denied.mp3")
 
 #datos para comenzar pygame:
 reloj = pygame.time.Clock()
@@ -190,27 +191,32 @@ while ejecutando:
                 teclas_num = {pygame.K_1: 0, pygame.K_2: 1, pygame.K_3: 2, pygame.K_4: 3}
                 if evento.key in teclas_num:
                     fantasma_actual = fants_elegidos[ind_fant]
-                    esquinas_elegidas[fantasma_actual] = opciones_esquina[teclas_num[evento.key]]
-                    ind_fant += 1
-                    sonido_select.play()
-                    if ind_fant >= len (fants_elegidos):
-                        lista_fants = []
-                        ghost_house_x, ghost_house_y = 13, 11
+                    esq_elegida = opciones_esquina[teclas_num[evento.key]]
+                    if esq_elegida not in esquinas_elegidas.values(): 
+                        esquinas_elegidas[fantasma_actual] = esq_elegida
+                        ind_fant += 1
+                        sonido_select.play() 
+                        if ind_fant >= len (fants_elegidos):
+                            lista_fants = []
+                            ghost_house_x, ghost_house_y = 13, 11
 
-                        for nombre_f in fants_elegidos:
-                            esquina_texto = esquinas_elegidas[nombre_f]
-                            tile_esquina_real = coordenadas_esquinas[esquina_texto]
+                            for nombre_f in fants_elegidos:
+                                esquina_texto = esquinas_elegidas[nombre_f]
+                                tile_esquina_real = coordenadas_esquinas[esquina_texto]
 
                             if nombre_f == 'Blinky':
                                 nuevo_fant = Blinky(ghost_house_x, ghost_house_y, tile_esquina_real)
                             elif nombre_f == 'Pinky':
                                 nuevo_fant = Pinky(ghost_house_x, ghost_house_y, tile_esquina_real)
-                            
-                            lista_fants.append(nuevo_fant)
-                        
-                        tiempo_fase_inicio = pygame.time.get_ticks()
-                        fase_actual = 1
-                        estado = "JUEGO"
+                                
+                                lista_fants.append(nuevo_fant)
+                            tiempo_fase_inicio = pygame.time.get_ticks()
+                            fase_actual = 1
+                            estado = "JUEGO"
+                    else:
+                        sonido_denied.play() 
+                        pass 
+
         pantalla_esquina(pantalla, fantasma_actual, fants_elegidos, ind_fant, colores_fants, opciones_esquina, esquinas_elegidas)
     
     elif estado == "JUEGO": 
