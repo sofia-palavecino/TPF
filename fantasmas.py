@@ -1,6 +1,7 @@
 import pygame
 import math
-import random 
+import random
+import os 
 
 class Fantasma:
     def __init__(self, x, y, color, tile_esquina, tamaño_tile=22):
@@ -22,6 +23,14 @@ class Fantasma:
             "Ojos": 4
         }
         self.modo = "Scatter" # "Scatter", "Chase", "Asustado", "Ojos"
+        self.velocidad_actual = self.velocidades_dict[self.modo]
+        self.imagen_actual = None
+        try:
+            self.img_asustado = pygame.transform.scale(pygame.image.load("asustado.png").convert_alpha(), (tamaño_tile, tamaño_tile))
+            self.img_ojos = pygame.transform.scale(pygame.image.load("ojos.png").convert_alpha(), (tamaño_tile, tamaño_tile))
+        except:
+            self.img_asustado = None
+            self.img_ojos = None
     
     def obtener_direccion_opuesta(self, dir_nombre):
         opuestos = {"ARRIBA":"ABAJO","ABAJO":"ARRIBA","IZQUIERDA":"DERECHA","DERECHA":"IZQUIERDA"}
@@ -46,7 +55,9 @@ class Fantasma:
 
                 if caracter_tile == 'X':
                     continue
-                if caracter_tile in ['-','G'] and self.modo != "Ojos":
+                if caracter_tile == 'G' and self.modo != "Ojos":
+                    continue
+                if caracter_tile == '-' and (not self.activo or self.modo == "Asustado"):
                     continue
 
                 opciones_validas[nombre_dir] = (sig_x, sig_y)
@@ -75,6 +86,15 @@ class Fantasma:
     def actualizar_posicion(self, mapa):
         dx, dy = self.direcciones[self.direccion_actual]
         
+        columnas_totales = len(mapa[0])
+
+        if self.x < 0:
+            self.x = columnas_totales - 1
+            self.px = self.x * self.tamaño_tile
+        elif self.x >= columnas_totales:
+            self.x = 0
+            self.px = 0
+
         if 0 <= self.y < len(mapa) and 0 <= self.x < len(mapa[0]):
             if mapa[self.y][self.x] == 'T' and self.modo in ["Scatter", "Chase"]:
                 self.velocidad_actual = self.velocidades_dict["En Tunel"]
@@ -89,22 +109,51 @@ class Fantasma:
         self.x = int(self.px // self.tamaño_tile)
         self.y = int(self.py // self.tamaño_tile)
 
+        if self.modo == "Ojos":
+            if self.x == 13 and self.y == 11:
+                self.cambiar_modo("Scatter")
+                self.activo = True
+                self.px = self.x * self.tamaño_tile
+                self.py = self.y * self.tamaño_tile
+                self.direccion_actual = "ARRIBA"
 
     def dibujar(self, pantalla):
+        img_a_dibujar = self.imagen_actual
+        
         if self.modo == "Asustado":
-            color_render = (0, 0, 255)
+            if hasattr(self, 'img_asustado') and self.img_asustado is not None:
+                img_a_dibujar = self.img_asustado
         elif self.modo == "Ojos":
-            color_render = (255, 255, 255)
-        else:
-            color_render = self.color
+            if hasattr(self, 'img_ojos') and self.img_ojos is not None:
+                img_a_dibujar = self.img_ojos
 
-        pygame.draw.circle(pantalla, color_render, (int(self.px + self.tamaño_tile//2), int(self.py + self.tamaño_tile//2)), self.tamaño_tile//2 - 2)
+        if img_a_dibujar is not None:
+            pantalla.blit(img_a_dibujar, (int(self.px), int(self.py)))
+        else:
+            centro_x = int(self.px + self.tamaño_tile // 2)
+            centro_y = int(self.py + self.tamaño_tile // 2)
+            radio = self.tamaño_tile // 2
+            
+            if self.modo == "Asustado":
+                color_respaldo = (0, 0, 255)
+            elif self.modo == "Ojos":
+                color_respaldo = (255, 255, 255)
+            else:
+                color_respaldo = self.color
+            
+            pygame.draw.circle(pantalla, color_respaldo, (centro_x, centro_y), radio)
 
     
 class Blinky(Fantasma):
     def __init__(self, x, y, tile_esquina):
         super().__init__(x, y, (255, 0, 0), tile_esquina)
-    
+
+        try:
+            imagen_base = pygame.image.load("blinky.png").convert_alpha()
+            self.imagen_actual = pygame.transform.scale(imagen_base, (self.tamaño_tile, self.tamaño_tile))
+        except:
+            print("No se pudo cargar la imagen de Blinky, se usará el color base.")
+
     def actualizar_objetivo(self, pacman_tile, pacman_dir=None):
         if self.modo == "Scatter":
             self.tile_objetivo = self.tile_esquina
@@ -117,14 +166,21 @@ class Blinky(Fantasma):
 class Pinky(Fantasma):
     def __init__(self, x, y, tile_esquina):
         super().__init__(x, y, (255, 184, 255), tile_esquina)
-    
+        
+        try:
+            imagen_base = pygame.image.load("pinky.png").convert_alpha()
+            self.imagen_actual = pygame.transform.scale(imagen_base, (self.tamaño_tile, self.tamaño_tile))
+        except:
+            print("No se pudo cargar la imagen de Pinky, se usará el color base.")
+   
     def actualizar_objetivo(self, pacman_tile, pacman_dir):
         if self.modo == "Scatter":
             self.tile_objetivo = self.tile_esquina
         elif self.modo == "Chase":
             dx, dy = pacman_dir
             self.tile_objetivo = (pacman_tile[0] + dx * 4, pacman_tile[1] + dy * 4) # para que esté 4 posiciones adelante de la dirección actual de Pac-Man
-
+        elif self.modo == "Ojos":
+            self.tile_objetivo = (13, 11)
 
 class Inky(Fantasma): # tal vez sería mejor que en dicc_fantasmas se guarde también el estado de los fantasmas. por ejemplo, no se toman en cuenta las coor de blinky si está en modo ojos --> crear el dicc_fantasmas en paralelo a la lista_fants
     def __init__(self, x, y, tile_esquina):
@@ -161,6 +217,23 @@ class Inky(Fantasma): # tal vez sería mejor que en dicc_fantasmas se guarde tam
             self.elegir_punto_cero(pacman_tile, pacman_dir)
             self.calcular_vector()
             self.tile_objetivo = (self.punto_cero[0]-self.vector[0], self.punto_cero[1]-self.vector[1])
+
+class Clyde(Fantasma):
+    def __init__(self, x, y, tile_esquina):
+        super().__init__(x, y, (250, 171, 52), tile_esquina)
+        self.distancia_clyde_y_pacman = 0
+
+    def actualizar_objetivo(self, pacman_tile):
+        if self.modo == "Scatter":
+            self.tile_objetivo = self.tile_esquina
+        elif self.modo == "Chase":
+            self.distancia_clyde_y_pacman = self.calcular_distancia((self.x,self.y), pacman_tile)
+            if self.distancia_clyde_y_pacman > 8:
+                self.tile_objetivo = pacman_tile
+            else:
+                self.tile_objetivo = self.tile_esquina
+
+
 
 # IDEAS
 # hacer que se printee una x en el tile objetivo así corroborar si están funcionando bien los algoritmos
