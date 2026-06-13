@@ -105,7 +105,7 @@ class Blinky(Fantasma):
     def __init__(self, x, y, tile_esquina):
         super().__init__(x, y, (255, 0, 0), tile_esquina)
     
-    def actualizar_objetivo_blinky(self, pacman_tile, pacman_dir=None):
+    def actualizar_objetivo(self, pacman_tile, pacman_dir=None):
         if self.modo == "Scatter":
             self.tile_objetivo = self.tile_esquina
         elif self.modo == "Chase":
@@ -118,7 +118,7 @@ class Pinky(Fantasma):
     def __init__(self, x, y, tile_esquina):
         super().__init__(x, y, (255, 184, 255), tile_esquina)
     
-    def actualizar_objetivo_pinky(self, pacman_tile, pacman_dir):
+    def actualizar_objetivo(self, pacman_tile, pacman_dir):
         if self.modo == "Scatter":
             self.tile_objetivo = self.tile_esquina
         elif self.modo == "Chase":
@@ -153,7 +153,7 @@ class Inky(Fantasma): # tal vez sería mejor que en dicc_fantasmas se guarde tam
     def calcular_vector(self):
         self.vector = [self.pivot[0]-self.punto_cero[0], self.pivot[1]-self.punto_cero[1]]
 
-    def actualizar_objetivo_inky(self, dicc_fantasmas, pacman_tile, pacman_dir):
+    def actualizar_objetivo(self, dicc_fantasmas, pacman_tile, pacman_dir):
         if self.modo == "Scatter":
             self.tile_objetivo = self.tile_esquina
         elif self.modo == "Chase":
@@ -167,7 +167,7 @@ class Clyde(Fantasma):
         super().__init__(x, y, (250, 171, 52), tile_esquina)
         self.distancia_clyde_y_pacman = 0
 
-    def actualizar_objetivo_clyde(self, pacman_tile):
+    def actualizar_objetivo(self, pacman_tile): #cuando llamemos a las funciones de actualizar objetivo, no habrá problemas con los argumentos de entrada? no son iguales para todos los fatnasmas
         if self.modo == "Scatter":
             self.tile_objetivo = self.tile_esquina
         elif self.modo == "Chase":
@@ -177,9 +177,39 @@ class Clyde(Fantasma):
             else:
                 self.tile_objetivo = self.tile_esquina
             
+class Hungry(Fantasma): # actúa como clyde si queda mucha comida
+    def __init__(self, x, y, tile_esquina):
+        super().__init__(x, y, (255, 255, 255), tile_esquina)
+        self.comida_random = 0
 
+    def actualizar_objetivo(self, pacman_tile, lista_comida):
+        if self.modo == "Scatter":
+            self.tile_objetivo = self.tile_esquina
+        elif self.modo == "Chase":
+            if len(lista_comida) > 15:
+                self.distancia_hungry_y_pacman = self.calcular_distancia((self.x,self.y), pacman_tile)
+                if self.distancia_hungry_y_pacman > 8:
+                    self.tile_objetivo = pacman_tile
+                else:
+                    self.tile_objetivo = self.tile_esquina
+            else:
+                self.tile_objetivo = lista_comida[0] # en primera instancia, hago que su objetivo sea la primera comida de la lista
+                if self.tile_objetivo == (self.x, self.y): # cuando finalmente llega a ese primer objetivo, le asigno otro
+                    self.comida_random = random.randint(0, len(lista_comida)-1)
+                    self.tile_objetivo = lista_comida[self.comida_random]              
 
 # IDEAS
 # hacer que se printee una x en el tile objetivo así corroborar si están funcionando bien los algoritmos
+
+
+
+
+
+
+
+
+
+
+
 # the wizard: wizzy. envenena a pacman cuando colisionan. pacman se pone verde en el modo embrujado. si comes powerpellet se rompe el embrujo. este fantasma va a ser violeta
 # the guardian: blanco. su funcion es crear un escudo para pacman cuando estas en chase indefinido. twinky
