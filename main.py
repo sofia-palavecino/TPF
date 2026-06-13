@@ -86,11 +86,12 @@ score = 0
 punto_fants = 0
 nivel = 1  
 high_score = 0
+supero = False #agregar que cuando supera el high score sea True, y el sonido 
 puntos_fantasmas_escala = [200, 400, 800, 1600] 
 fantasmas_comidos_en_racha = 0
 ya_recibio_vida_extra = False
 #pantalla fantasmas: 
-opciones_fants = {"Blinky": "el que persigue", "Pinky" : "el que", "Inky": "el que", "Clyde": "el que", "Coward": "el que", "Spyke": "el que"}
+opciones_fants = {"Blinky": "el perseguidor", "Pinky" : "el emboscador", "Inky": "el flanqueador", "Clyde": "el tímido", "Coward": "el que", "Hungry": "el que"}
 claves_fants = list(opciones_fants.keys()) #mantener los nombres como una lista facilita al momento de saber en qué opción está el usuario
 lista_colores = [rojo, rosa, azul, verde, violeta, blanco]
 colores_fants = dict(zip(claves_fants, lista_colores)) #creo un diccionarios con los nombres de los fantasmas y sus colores 
@@ -142,6 +143,7 @@ def reiniciar_juego(): # funcion para cargar todos los datos de cero
     score = 0
     vidas = 3 
     nivel = 1
+    supero = False 
     modo_asustado = False
     tiempo_susto = 0
     ya_recibio_vida_extra = False
