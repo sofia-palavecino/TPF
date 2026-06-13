@@ -40,7 +40,7 @@ def guardar_high_score(nuevo_record):
         with open("highscore.txt", "w") as archivo:
             archivo.write(str(nuevo_record))
     except Exception as e:
-        print(f'No se pudo guardar el high score: {e}')
+        print(f'No se pudo guardar el high score: {e}') 
 
 with open ("mapa.txt", "r") as archivo: 
     for fila, linea in enumerate (archivo):
@@ -110,7 +110,6 @@ score = 0
 punto_fants = 0
 nivel = 1  
 high_score = cargar_high_score()
-high_score = 0
 supero = False #agregar que cuando supera el high score sea True, y el sonido 
 
 puntos_fantasmas_escala = [200, 400, 800, 1600] 
@@ -161,7 +160,7 @@ def reiniciar_juego(): # funcion para cargar todos los datos de cero
     global score, vidas, nivel, lista_comida, lista_power, fants_elegidos
     global esquinas_elegidas, ind_fant, modo_asustado, tiempo_susto
     global tiempo_fase_inicio, indice_fase_actual, fase_actual, fantasmas_inicializados
-    global lista_fants, puntos_fantasmas_escala, ya_recibio_vida_extra, ind_selecc
+    global lista_fants, puntos_fantasmas_escala, ya_recibio_vida_extra, ind_selecc, supero 
     
     fants_elegidos = []        
     esquinas_elegidas = {}     
@@ -256,6 +255,7 @@ while ejecutando:
                         if len(fants_elegidos) == 4:
                             estado = "MENU_ESQUINAS"
         pantalla_fants(pantalla, fants_elegidos, opciones_fants, lista_colores, ind_selecc)
+
     elif estado == "MENU_ESQUINAS":
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -334,7 +334,7 @@ while ejecutando:
         
         pantalla.fill(negro)
         dibujar_mapa(lista_comida, lista_power)
-        margen_mapa(pantalla, score, nivel, high_score, vidas) 
+        margen_mapa(pantalla, score, nivel, high_score, vidas, supero) 
 
         teclas = pygame.key.get_pressed()
         pacman_personaje.move(lista_paredes, lista_ghost_house_rect, teclas)
@@ -367,6 +367,10 @@ while ejecutando:
 
         if score > high_score:
             high_score = score
+            guardar_high_score(high_score)
+            if not supero: 
+                supero = True
+                sonido_high.play()
 
         if not modo_asustado:
             tiempo_en_fase = (pygame.time.get_ticks() - tiempo_fase_inicio) / 1000.0 # para calcular los segundos que pasaron desde que inció la fase actual
@@ -473,7 +477,6 @@ while ejecutando:
             pantalla.blit(texto_titulo, (ancho // 2 - texto_titulo.get_width() // 2, 250)) 
 
         if vidas == 0: #si se queda sin vidas pasa a la pantalla de game over
-            guardar_high_score(high_score)
             estado = "OVER" 
         
         if score >= 10000 and not ya_recibio_vida_extra: # si llega a 10mil puntos se le suma una vida
