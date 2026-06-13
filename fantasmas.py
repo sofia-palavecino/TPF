@@ -24,13 +24,16 @@ class Fantasma:
         }
         self.modo = "Scatter" # "Scatter", "Chase", "Asustado", "Ojos"
         self.velocidad_actual = self.velocidades_dict[self.modo]
+        self.sprites_vivos = {}
         self.imagen_actual = None
-        try:
-            self.img_asustado = pygame.transform.scale(pygame.image.load("asustado.png").convert_alpha(), (tamaño_tile, tamaño_tile))
-            self.img_ojos = pygame.transform.scale(pygame.image.load("ojos.png").convert_alpha(), (tamaño_tile, tamaño_tile))
-        except:
-            self.img_asustado = None
-            self.img_ojos = None
+        self.saliendo = False
+        self.objetivo_ghost_house = (13, 14)
+        self.objetivo_salida = (13, 11)
+        self.activo = False
+        self.img_asustado = pygame.transform.scale(pygame.image.load("asustado_azul.jpeg").convert_alpha(), (tamaño_tile, tamaño_tile))
+        self.img_asustado_blanco = pygame.transform.scale(pygame.image.load("asustado_blanco.jpeg").convert_alpha(), (tamaño_tile, tamaño_tile))
+        self.img_ojos = pygame.transform.scale(pygame.image.load("ojos.png").convert_alpha(), (tamaño_tile, tamaño_tile))
+        
     
     def obtener_direccion_opuesta(self, dir_nombre):
         opuestos = {"ARRIBA":"ABAJO","ABAJO":"ARRIBA","IZQUIERDA":"DERECHA","DERECHA":"IZQUIERDA"}
@@ -40,6 +43,11 @@ class Fantasma:
         return math.sqrt((tile_a[0] - tile_b[0])**2 + (tile_a[1] - tile_b[1])**2)
     
     def decidir_sig_direccion(self, mapa):
+        if self.saliendo:
+            objetivo_real = self.objetivo_salida
+        else:
+            objetivo_real = self.tile_objetivo
+        
         opciones_validas = {}
         dir_opuesta = self.obtener_direccion_opuesta(self.direccion_actual)
 
@@ -53,19 +61,25 @@ class Fantasma:
             if 0 <= sig_y < len(mapa) and 0 <= sig_x < len(mapa[0]):
                 caracter_tile = mapa[sig_y][sig_x]
 
-                if caracter_tile == 'X':
+                if caracter_tile in ('X'):
                     continue
-                if caracter_tile == 'G' and self.modo != "Ojos":
-                    continue
-                if caracter_tile == '-' and (not self.activo or self.modo == "Asustado"):
-                    continue
+                if caracter_tile == 'G':
+                    if self.modo == 'Ojos':
+                        pass
+                    elif self.saliendo or not self.activo:
+                        pass
+                    else:
+                        continue
+                if caracter_tile == '-':
+                    if self.modo != 'Ojos' and not self.saliendo:
+                        continue
 
                 opciones_validas[nombre_dir] = (sig_x, sig_y)
         
         if not opciones_validas:
             return
         
-        if self.modo == "Asustado":
+        if self.modo == "Asustado" and not self.saliendo:
             self.direccion_actual = random.choice(list(opciones_validas.keys()))
         else:
             mejor_dir = None
@@ -85,6 +99,23 @@ class Fantasma:
     
     def actualizar_posicion(self, mapa):
         dx, dy = self.direcciones[self.direccion_actual]
+        
+        if int(self.px) % self.tamaño_tile == 0 and int(self.py) % self.tamaño_tile == 0:
+            sig_x = self.x + dx
+            sig_y = self.y + dy
+            if 0 <= sig_y < len(mapa) and 0 <= sig_x < len(mapa[0]):
+                caracter_destino = mapa[sig_y][sig_x]
+                bloqueado = False
+                if caracter_destino in ('X'):
+                    bloqueado = True
+                elif caracter_destino == 'G':
+                    if self.modo != 'Ojos' and not (self.saliendo or not self.activo):
+                        bloqueado = True
+                elif caracter_destino == '-':
+                    if self.modo != 'Ojos' and not self.saliendo:
+                        bloqueado = True
+                if bloqueado:
+                    dx, dy = 0, 0
         
         columnas_totales = len(mapa[0])
 
@@ -109,33 +140,53 @@ class Fantasma:
         self.x = int(self.px // self.tamaño_tile)
         self.y = int(self.py // self.tamaño_tile)
 
-        if self.modo == "Ojos":
-            if self.x == 13 and self.y == 11:
-                self.cambiar_modo("Scatter")
-                self.activo = True
-                self.px = self.x * self.tamaño_tile
-                self.py = self.y * self.tamaño_tile
-                self.direccion_actual = "ARRIBA"
+        if self.modo == "Ojos" and (self.x, self.y) == self.objetivo_ghost_house:
+            self.cambiar_modo("Scatter")
+            self.activo = True
+            self.saliendo = True
+            self.px = self.x * self.tamaño_tile
+            self.py = self.y * self.tamaño_tile
+            self.direccion_actual = "ARRIBA"
 
-    def dibujar(self, pantalla):
+        if self.saliendo and 0 <= self.y < len(mapa) and 0 <= self.x < len(mapa[0]):
+            if mapa[self.y][self.x] == '-':
+                self.saliendo = False
+
+        if self.modo not in ("Ojos", "Asustado"):
+            if self.direccion_actual in self.sprites_vivos:
+                self.imagen_actual = self.sprites_vivos[self.direccion_actual]
+
+    def dibujar(self, pantalla, tiempo_susto_inicio, modo_asustado_global):
         img_a_dibujar = self.imagen_actual
         
-        if self.modo == "Asustado":
-            if hasattr(self, 'img_asustado') and self.img_asustado is not None:
-                img_a_dibujar = self.img_asustado
-        elif self.modo == "Ojos":
+        if self.modo == "Ojos":
             if hasattr(self, 'img_ojos') and self.img_ojos is not None:
                 img_a_dibujar = self.img_ojos
+        
+        elif self.modo == "Asustado" and modo_asustado_global:
+            tiempo_actual = pygame.time.get_ticks()
+            tiempo_transcurrido = (tiempo_actual - tiempo_susto_inicio) / 1000.0
 
+            if tiempo_transcurrido >= 4.0:
+                if (tiempo_actual // 200) % 2 == 0:
+                    img_a_dibujar = self.img_asustado if hasattr(self, 'img_asustado') else None
+                else:
+                    img_a_dibujar = self.img_asustado_blanco if hasattr(self, 'img_asustado_blanco') else None
+            else:
+                img_a_dibujar = self.img_asustado if hasattr(self, 'img_asustado') else None
+        
         if img_a_dibujar is not None:
             pantalla.blit(img_a_dibujar, (int(self.px), int(self.py)))
-        else:
+        else: # respaldo por si fallan las imagenes
             centro_x = int(self.px + self.tamaño_tile // 2)
             centro_y = int(self.py + self.tamaño_tile // 2)
             radio = self.tamaño_tile // 2
-            
             if self.modo == "Asustado":
-                color_respaldo = (0, 0, 255)
+                tiempo_actual = pygame.time.get_ticks()
+                if ((tiempo_actual - tiempo_susto_inicio) / 1000.0) >= 4.0 and (tiempo_actual // 200) % 2 !=0:
+                    color_respaldo = (255, 255, 255)
+                else:
+                    color_respaldo = (0, 0, 255)
             elif self.modo == "Ojos":
                 color_respaldo = (255, 255, 255)
             else:
@@ -145,42 +196,53 @@ class Fantasma:
 
     
 class Blinky(Fantasma):
-    def __init__(self, x, y, tile_esquina):
-        super().__init__(x, y, (255, 0, 0), tile_esquina)
-
-        try:
-            imagen_base = pygame.image.load("blinky.png").convert_alpha()
-            self.imagen_actual = pygame.transform.scale(imagen_base, (self.tamaño_tile, self.tamaño_tile))
-        except:
-            print("No se pudo cargar la imagen de Blinky, se usará el color base.")
+    def __init__(self, x, y, tile_esquina, tamaño_tile):
+        super().__init__(x, y, (255, 0, 0), tile_esquina, tamaño_tile)
+        self.nombre = 'Blinky'
+        self.sprites_vivos = {
+            "ARRIBA": pygame.transform.scale(pygame.image.load('blinky_arriba.jpeg'), (tamaño_tile, tamaño_tile)),
+            "ABAJO": pygame.transform.scale(pygame.image.load('blinky_abajo.jpeg'), (tamaño_tile, tamaño_tile)),
+            "IZQUIERDA": pygame.transform.scale(pygame.image.load('blinky_izq.jpeg'), (tamaño_tile, tamaño_tile)),
+            "DERECHA": pygame.transform.scale(pygame.image.load('blinky_der.jpeg'), (tamaño_tile, tamaño_tile))
+        }
+        self.imagen_actual = self.sprites_vivos["DERECHA"]
 
     def actualizar_objetivo(self, pacman_tile, pacman_dir=None):
+        if self.saliendo:
+            self.tile_objetivo = self.objetivo_salida
+            return
         if self.modo == "Scatter":
             self.tile_objetivo = self.tile_esquina
         elif self.modo == "Chase":
             self.tile_objetivo = pacman_tile
         elif self.modo == "Ojos":
-            self.tile_objetivo = (13, 11) # coordenadas de la Ghost House
+            self.tile_objetivo = self.objetivo_ghost_house
 
 
 class Pinky(Fantasma):
-    def __init__(self, x, y, tile_esquina):
-        super().__init__(x, y, (255, 184, 255), tile_esquina)
-        
-        try:
-            imagen_base = pygame.image.load("pinky.png").convert_alpha()
-            self.imagen_actual = pygame.transform.scale(imagen_base, (self.tamaño_tile, self.tamaño_tile))
-        except:
-            print("No se pudo cargar la imagen de Pinky, se usará el color base.")
-   
+    def __init__(self, x, y, tile_esquina, tamaño_tile):
+        super().__init__(x, y, (255, 184, 255), tile_esquina, tamaño_tile)
+        self.nombre = 'Pinky'
+        self.sprites_vivos = {
+            "ARRIBA": pygame.transform.scale(pygame.image.load('pinky_arriba.jpeg'), (tamaño_tile, tamaño_tile)),
+            "ABAJO": pygame.transform.scale(pygame.image.load('pinky_abajo.jpeg'), (tamaño_tile, tamaño_tile)),
+            "IZQUIERDA": pygame.transform.scale(pygame.image.load('pinky_izq.jpeg'), (tamaño_tile, tamaño_tile)),
+            "DERECHA": pygame.transform.scale(pygame.image.load('pinky_der.jpeg'), (tamaño_tile, tamaño_tile))
+        }
+        self.imagen_actual = self.sprites_vivos["IZQUIERDA"]
+    
     def actualizar_objetivo(self, pacman_tile, pacman_dir):
+        if self.saliendo:
+            self.tile_objetivo = self.objetivo_salida
+            return
         if self.modo == "Scatter":
             self.tile_objetivo = self.tile_esquina
         elif self.modo == "Chase":
             dx, dy = pacman_dir
             self.tile_objetivo = (pacman_tile[0] + dx * 4, pacman_tile[1] + dy * 4) # para que esté 4 posiciones adelante de la dirección actual de Pac-Man
         elif self.modo == "Ojos":
-            self.tile_objetivo = (13, 11)
+            self.tile_objetivo = self.objetivo_ghost_house
+
 
 class Inky(Fantasma): # tal vez sería mejor que en dicc_fantasmas se guarde también el estado de los fantasmas. por ejemplo, no se toman en cuenta las coor de blinky si está en modo ojos --> crear el dicc_fantasmas en paralelo a la lista_fants
     def __init__(self, x, y, tile_esquina):
