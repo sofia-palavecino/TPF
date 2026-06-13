@@ -73,6 +73,7 @@ sonido_nivel = pygame.mixer.Sound ("nivel.mp3")
 sonido_vida_extra = pygame.mixer.Sound ("vida_extra.mp3")
 sonido_select = pygame.mixer.Sound ("select.mp3") 
 sonido_denied = pygame.mixer.Sound ("denied.mp3")
+sonido_high = pygame.mixer.Sound("high_score.mp3") 
 
 #datos para comenzar pygame:
 reloj = pygame.time.Clock()
