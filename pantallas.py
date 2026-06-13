@@ -16,14 +16,13 @@ def pantalla_main(pantalla, ancho, tiempo, high_score):
     pantalla.fill(negro)
     fuente_titulo = pygame.font.SysFont("comicans", 60, bold = True)
     fuente_subtitulo = pygame.font.SysFont("trebuchetms", 20)
+    fuente_score = pygame.font.SysFont("comicans", 24)
     texto_titulo = fuente_titulo.render("PAC-MAN", True, amarillo) 
     texto_instrucciones = fuente_subtitulo.render("presiona ENTER para comenzar", True, blanco)
-    texto_high_score = fuente_subtitulo.render("HIGH SCORE", True, blanco)
-    num_high_score = fuente_subtitulo.render (f"{high_score}", True, blanco)
+    texto_high_score = fuente_score.render(f'HIGH SCORE: {high_score}', True, (255, 255, 255))
 
     pantalla.blit(texto_titulo, (ancho // 2 - texto_titulo.get_width() // 2, 250)) #centrar el texto
     pantalla.blit(texto_high_score, (ancho // 2 - texto_high_score.get_width() // 2, 80))
-    pantalla.blit(num_high_score, (ancho // 2 - num_high_score.get_width() // 2, 100))
     if (tiempo // 500) % 2 == 0: #cada 500ms se cumple, ahí se imprime el texto 
         pantalla.blit (texto_instrucciones, (ancho // 2 - texto_instrucciones.get_width() // 2, 400))
     
