@@ -90,12 +90,14 @@ gris = (128, 128, 128)
 sonido_comer = pygame.mixer.Sound ("comer_punto.mp3")
 sonido_power = pygame.mixer.Sound ("comer_pellet.mp3")
 sonido_intro = pygame.mixer.Sound ("intro.mp3")
+sonido_intro.set_volume(0.3)
 sonido_muerte_fants = pygame.mixer.Sound("muerte_fants.mp3")
 sonido_muerte_pacman = pygame.mixer.Sound ("muerte_pacman.mp3") #falta agregarlo a cuando muere
 sonido_nivel = pygame.mixer.Sound ("nivel.mp3")
 sonido_vida_extra = pygame.mixer.Sound ("vida_extra.mp3")
 sonido_select = pygame.mixer.Sound ("select.mp3") 
 sonido_denied = pygame.mixer.Sound ("denied.mp3")
+sonido_high = pygame.mixer.Sound("high_score.mp3") 
 
 #datos para comenzar pygame:
 reloj = pygame.time.Clock()
@@ -108,11 +110,15 @@ score = 0
 punto_fants = 0
 nivel = 1  
 high_score = cargar_high_score()
+high_score = 0
+supero = False #agregar que cuando supera el high score sea True, y el sonido 
+
 puntos_fantasmas_escala = [200, 400, 800, 1600] 
 fantasmas_comidos_en_racha = 0
 ya_recibio_vida_extra = False
 #pantalla fantasmas: 
 opciones_fants = {"Blinky": "El perseguidor", "Pinky": "El emboscador", "Inky": "El flanqueador", "Clyde": "El tímido", "Hungry": "El hambriento", "Spyke": "El ..."}
+
 claves_fants = list(opciones_fants.keys()) #mantener los nombres como una lista facilita al momento de saber en qué opción está el usuario
 lista_colores = [rojo, rosa, azul, verde, violeta, blanco]
 colores_fants = dict(zip(claves_fants, lista_colores)) #creo un diccionarios con los nombres de los fantasmas y sus colores 
@@ -155,16 +161,16 @@ def reiniciar_juego(): # funcion para cargar todos los datos de cero
     global score, vidas, nivel, lista_comida, lista_power, fants_elegidos
     global esquinas_elegidas, ind_fant, modo_asustado, tiempo_susto
     global tiempo_fase_inicio, indice_fase_actual, fase_actual, fantasmas_inicializados
-    global lista_fants, puntos_fantasmas_escala, ya_recibio_vida_extra
+    global lista_fants, puntos_fantasmas_escala, ya_recibio_vida_extra, ind_selecc
     
     fants_elegidos = []        
     esquinas_elegidas = {}     
     ind_fant = 0               
     ind_selecc = 0           
-    fantasma_actual = claves_fants[ind_selecc]
     score = 0
-    vidas = 3
+    vidas = 3 
     nivel = 1
+    supero = False 
     modo_asustado = False
     tiempo_susto = 0
     ya_recibio_vida_extra = False
@@ -215,6 +221,7 @@ def reiniciar_juego(): # funcion para cargar todos los datos de cero
 while ejecutando:
     reloj.tick(60)
     tiempo = pygame.time.get_ticks()
+
     if estado == "MENU": #Página de inicio
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
