@@ -17,6 +17,30 @@ dicc_fantasmas = {} # TENGO QUE VER COMO CREARLO Y INSERTARLE LAS COORDENANDAS Y
 tamaño_bloque = 22
 pacman_x = 0 
 pacman_y = 0
+
+def cargar_high_score():
+    """
+    Lee el puntaje máximo desde un archivo. Si no existe, devuelve 0.
+    """
+    try:
+        with open("highscore.txt", "r") as archivo:
+            contenido = archivo.read().strip()
+            if contenido:
+                return int(contenido)
+    except (FileNotFoundError, ValueError):
+        pass
+    return 0
+
+def guardar_high_score(nuevo_record):
+    """
+    Guarda el nuevo puntaje máximo en el archivo.
+    """
+    try:
+        with open("highscore.txt", "w") as archivo:
+            archivo.write(str(nuevo_record))
+    except Exception as e:
+        print(f'No se pudo guardar el high score: {e}')
+
 with open ("mapa.txt", "r") as archivo: 
     for fila, linea in enumerate (archivo):
         for columna, caracter in enumerate (linea): 
@@ -80,7 +104,7 @@ vidas = 3
 score = 0
 punto_fants = 0
 nivel = 1  
-high_score = 0
+high_score = cargar_high_score()
 puntos_fantasmas_escala = [200, 400, 800, 1600] 
 fantasmas_comidos_en_racha = 0
 ya_recibio_vida_extra = False
@@ -168,9 +192,10 @@ def reiniciar_juego(): # funcion para cargar todos los datos de cero
 
         nuevo_fant.px = g_col * tamaño_bloque
         nuevo_fant.py = g_fil * tamaño_bloque
-        nuevo_fant.direccion_actual = "IZQUIERDA"
 
         nuevo_fant.activo = True if i == 0 else False
+        nuevo_fant.saliendo = True if i == 0 else False
+        nuevo_fant.direccion_actual = "ARRIBA" if i == 0 else "IZQUIERDA"
         nuevo_fant.orden_salida = i
         nuevo_fant.modo = "Scatter"
         nuevo_fant.velocidad_actual = nuevo_fant.velocidades_dict[nuevo_fant.modo]
@@ -247,7 +272,9 @@ while ejecutando:
                                     nuevo_fant = Pinky(g_col, g_fil, tile_esquina_real)
                                 
                                 nuevo_fant.activo = True if i == 0 else False
+                                nuevo_fant.saliendo = True if i == 0 else False
                                 nuevo_fant.orden_salida = i
+                                nuevo_fant.direccion_actual = "ARRIBA" if i == 0 else "IZQUIERDA"
                                 
                                 if nombre_f in ['Blinky', 'Pinky']:
                                     lista_fants.append(nuevo_fant)
@@ -285,15 +312,22 @@ while ejecutando:
         if ya_comio: 
             sonido_comer.play() 
         punto_power, comio_power, lista_power = pacman_personaje.power_pellet(lista_power)
+        
         if comio_power:
             sonido_power.play()
             modo_asustado = True # si comio power pellet se activa el modo asustado 
             tiempo_susto = pygame.time.get_ticks()
             fantasmas_comidos_en_racha = 0
+            puntos_fantasmas_escala = [200, 400, 800, 1600]
             for f in lista_fants:
-                f.cambiar_modo("Asustado")
+                if f.activo and f.modo != "Ojos":
+                    f.cambiar_modo("Asustado")
+        
         score += punto_comida
         score += punto_power
+
+        if score > high_score:
+            high_score = score
 
         if not modo_asustado:
             tiempo_en_fase = (pygame.time.get_ticks() - tiempo_fase_inicio) / 1000.0 # para calcular los segundos que pasaron desde que inció la fase actual
@@ -334,10 +368,19 @@ while ejecutando:
             if not f.activo:
                 if f.orden_salida == 1 and dot_comidos >= 30:
                     f.activo = True
+                    f.saliendo = True
+                    f.direccion_actual = "ARRIBA"
+                    f.cambiar_modo("Scatter")
                 elif f.orden_salida == 2 and dot_comidos >= 60:
                     f.activo = True
+                    f.saliendo = True
+                    f.direccion_actual = "ARRIBA"
+                    f.cambiar_modo("Scatter")
                 elif f.orden_salida == 3 and dot_comidos >= 90:
                     f.activo = True
+                    f.saliendo = True
+                    f.direccion_actual = "ARRIBA"
+                    f.cambiar_modo("Scatter")
             if not f.activo:
                 f.dibujar(pantalla)
                 continue
@@ -375,9 +418,10 @@ while ejecutando:
                         fant.y = g_fil
                         fant.px = g_col * tamaño_bloque
                         fant.py = g_fil * tamaño_bloque
-                        fant.direccion_actual = "IZQUIERDA"
-                        fant.cambiar_modo("Scatter")
                         fant.activo = True if i == 0 else False
+                        fant.saliendo = True if i == 0 else False
+                        fant.direccion_actual = "ARRIBA" if i == 0 else "IZQUIERDA"
+                        fant.cambiar_modo("Scatter")
                     
                     pygame.time.delay(1000)
                     break
@@ -394,8 +438,8 @@ while ejecutando:
             pantalla.blit(texto_titulo, (ancho // 2 - texto_titulo.get_width() // 2, 250))
 
         if vidas == 0: #si se queda sin vidas pasa a la pantalla de game over
+            guardar_high_score(high_score)
             estado = "OVER" 
-
         
         if score >= 10000 and not ya_recibio_vida_extra: # si llega a 10mil puntos se le suma una vida
             vidas += 1
