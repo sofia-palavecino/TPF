@@ -140,4 +140,4 @@ def pantalla_preparado(pantalla):
     pantalla.fill(negro)
     fuente_ready = pygame.font.SysFont("trebuchetms", 30, bold = True)
     text_ready = fuente_ready.render("READY?", True, amarillo)
-    pantalla.blit(text_ready, (300, 300)) 
+    pantalla.blit(text_ready, (308, 341)) 
