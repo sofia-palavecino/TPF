@@ -109,7 +109,7 @@ puntos_fantasmas_escala = [200, 400, 800, 1600]
 fantasmas_comidos_en_racha = 0
 ya_recibio_vida_extra = False
 #pantalla fantasmas: 
-opciones_fants = {"Blinky": "el que persigue", "Pinky" : "el que", "Inky": "el que", "Clyde": "el que", "Coward": "el que", "Spyke": "el que"}
+opciones_fants = {"Blinky": "El perseguidor", "Pinky": "El emboscador", "Inky": "El flanqueador", "Clyde": "El tímido", "Hungry": "El hambriento", "Spyke": "El ..."}
 claves_fants = list(opciones_fants.keys()) #mantener los nombres como una lista facilita al momento de saber en qué opción está el usuario
 lista_colores = [rojo, rosa, azul, verde, violeta, blanco]
 colores_fants = dict(zip(claves_fants, lista_colores)) #creo un diccionarios con los nombres de los fantasmas y sus colores 
@@ -267,9 +267,9 @@ while ejecutando:
                                 g_col, g_fil = lista_ghost_house[i % len(lista_ghost_house)]
 
                                 if nombre_f == 'Blinky':
-                                    nuevo_fant = Blinky(g_col, g_fil, tile_esquina_real)
+                                    nuevo_fant = Blinky(g_col, g_fil, tile_esquina_real, tamaño_bloque)
                                 elif nombre_f == 'Pinky':
-                                    nuevo_fant = Pinky(g_col, g_fil, tile_esquina_real)
+                                    nuevo_fant = Pinky(g_col, g_fil, tile_esquina_real, tamaño_bloque)
                                 
                                 nuevo_fant.activo = True if i == 0 else False
                                 nuevo_fant.saliendo = True if i == 0 else False
@@ -352,7 +352,8 @@ while ejecutando:
                 fantasmas_comidos_en_racha = 0
                 modo_interrumpido = tabla_fases[indice_fase_actual]["modo"]
                 for f in lista_fants:
-                    f.cambiar_modo(modo_interrumpido)
+                    if f.modo != "Ojos" and f.activo:
+                        f.cambiar_modo(modo_interrumpido)
                 pacman_personaje.velocidad * 0.8 #velocidad normal
                 tiempo_fase_inicio += duracion_susto
             else: 
@@ -382,7 +383,7 @@ while ejecutando:
                     f.direccion_actual = "ARRIBA"
                     f.cambiar_modo("Scatter")
             if not f.activo:
-                f.dibujar(pantalla)
+                f.dibujar(pantalla, tiempo_susto, modo_asustado)
                 continue
 
             if int(f.px) % tamaño_bloque < f.velocidad_actual and int(f.py) % tamaño_bloque < f.velocidad_actual: # verifico que esté alineado a una celda
@@ -392,7 +393,7 @@ while ejecutando:
                 f.decidir_sig_direccion(mapa)
             
             f.actualizar_posicion(mapa)
-            f.dibujar(pantalla)
+            f.dibujar(pantalla, tiempo_susto, modo_asustado)
 
             rect_fantasma_actual = pygame.Rect(f.px, f.py, tamaño_bloque, tamaño_bloque)
 
