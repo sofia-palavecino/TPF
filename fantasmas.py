@@ -271,7 +271,7 @@ class Inky(Fantasma): # tal vez sería mejor que en dicc_fantasmas se guarde tam
     def calcular_vector(self):
         self.vector = [self.pivot[0]-self.punto_cero[0], self.pivot[1]-self.punto_cero[1]]
 
-    def actualizar_objetivo_inky(self, dicc_fantasmas, pacman_tile, pacman_dir):
+    def actualizar_objetivo(self, dicc_fantasmas, pacman_tile, pacman_dir):
         if self.modo == "Scatter":
             self.tile_objetivo = self.tile_esquina
         elif self.modo == "Chase":
@@ -295,8 +295,37 @@ class Clyde(Fantasma):
             else:
                 self.tile_objetivo = self.tile_esquina
 
+    def actualizar_objetivo(self, pacman_tile, lista_comida):
+        if self.modo == "Scatter":
+            self.tile_objetivo = self.tile_esquina
+        elif self.modo == "Chase":
+            if len(lista_comida) > 15:
+                self.distancia_hungry_y_pacman = self.calcular_distancia((self.x,self.y), pacman_tile)
+                if self.distancia_hungry_y_pacman > 8:
+                    self.tile_objetivo = pacman_tile
+                else:
+                    self.tile_objetivo = self.tile_esquina
+            elif len(lista_comida) == 0:
+                self.tile_objetivo = pacman_tile
+            else:
+                if self.tile_objetivo not in lista_comida: #por si pacman se come la comida a la cual hungry estaba yendo durante el viaje
+                    self.tile_objetivo = lista_comida[0] # le asigno la primera comida disponible en el mapa
+                elif self.tile_objetivo == (self.x, self.y): #si llegó a la tile donde estaba yendo 
+                    self.comida_random = random.randint(0, len(lista_comida)-1) # si ya llegó, le asigno una comida random de la lista
+                    self.tile_objetivo = lista_comida[self.comida_random]              
 
 # IDEAS
 # hacer que se printee una x en el tile objetivo así corroborar si están funcionando bien los algoritmos
+
+
+
+
+
+
+
+
+
+
+
 # the wizard: wizzy. envenena a pacman cuando colisionan. pacman se pone verde en el modo embrujado. si comes powerpellet se rompe el embrujo. este fantasma va a ser violeta
 # the guardian: blanco. su funcion es crear un escudo para pacman cuando estas en chase indefinido. twinky
