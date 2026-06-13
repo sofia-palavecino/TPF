@@ -1,13 +1,14 @@
 import pygame
 from pacman import Pared, Pacman
 from mapa import cargar_mapa, verificar_mapa, dibujar_mapa
-from pantallas import pantalla_main, pantalla_fants, pantalla_game, margen_mapa, pantalla_esquina
+from pantallas import pantalla_main, pantalla_fants, pantalla_game, margen_mapa, pantalla_esquina, pantalla_aprender, pantalla_preparado
 from fantasmas import Pinky, Blinky
 pygame.init() 
 pygame.mixer.init() 
 
 lista_paredes = []
 lista_ghost_house = []
+lista_ghost_house_rect = [] #para que pacman no pueda pasar 
 lista_comida = []
 lista_comida_orig = [] #para guardar la comida del mapa original y poder regenerarla en el siguiente nivel
 lista_power = []
@@ -28,6 +29,8 @@ with open ("mapa.txt", "r") as archivo:
                 lista_paredes.append(nueva_pared)
             elif caracter == "G":
                 lista_ghost_house.append((columna, fila))
+                pared_ghost = Pared (x, y)
+                lista_ghost_house_rect.append (pared_ghost)
             elif caracter == "P":
                 pacman_x = x 
                 pacman_y = y
@@ -101,6 +104,8 @@ ind_selecc = 0
 ind_fant = 0
 fantasma_actual = claves_fants[ind_selecc]
 fants_elegidos = []
+opciones_modo = ["Modo Normal", "Modo Aprender"]
+ind_modo = 0
 #modo asustado
 modo_asustado = False
 duracion_susto = 6000 #6 segundos
@@ -254,13 +259,40 @@ while ejecutando:
                             
                             tiempo_fase_inicio = pygame.time.get_ticks()
                             fase_actual = 1
-                            estado = "JUEGO"
+                            estado = "MODO"
                     else:
                         sonido_denied.play() 
                         pass 
 
         pantalla_esquina(pantalla, fantasma_actual, fants_elegidos, ind_fant, colores_fants, opciones_esquina, esquinas_elegidas)
     
+    elif estado == "MODO": 
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                ejecutando = False
+            if evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_DOWN:
+                    ind_modo += 1
+                    if ind_modo >= len(opciones_modo):
+                        ind_modo = 0
+                elif evento.key == pygame.K_UP:
+                    ind_modo -= 1
+                    if ind_modo < 0:
+                        ind_modo = len(opciones_modo) - 1
+                elif evento.key == pygame.K_RETURN:
+                    estado = "PREPARADO"
+                    tiempo_pantalla = pygame.time.get_ticks()
+                    if ind_modo == 0:
+                        modo_juego = "NORMAL"
+                    else:
+                        modo_juego = "APRENDER" #para luego cambiar lo necesario en el turno. 
+        pantalla_aprender(pantalla, opciones_modo, ind_modo)
+    
+    elif estado == "PREPARADO": 
+        pantalla_preparado(pantalla)
+        if pygame.time.get_ticks() - tiempo_pantalla >= 1000: 
+            estado = "JUEGO"
+
     elif estado == "JUEGO": 
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -271,7 +303,7 @@ while ejecutando:
         margen_mapa(pantalla, score, nivel, high_score, vidas) 
 
         teclas = pygame.key.get_pressed()
-        pacman_personaje.move(lista_paredes, teclas)
+        pacman_personaje.move(lista_paredes, lista_ghost_house_rect, teclas)
         pacman_personaje.dibujar_pacman(pantalla)
         pacman_tile_x = int(pacman_personaje.x // tamaño_bloque)
         pacman_tile_y = int(pacman_personaje.y // tamaño_bloque)
@@ -322,12 +354,7 @@ while ejecutando:
                 pacman_personaje.velocidad * 0.8 #velocidad normal
                 tiempo_fase_inicio += duracion_susto
             else: 
-                pacman_personaje.velocidad * 0.9
-                #lista_fantasmas, puntos_fants, comio_fantasma = pacman_personaje.comer_fantasma(comio_power, lista_fants, punto_fants, fantasmas_comidos) 
-                #if comio_fantasma: 
-                    #fantasmas_comidos += 1
-                    #sonido_muerte_fants.play() 
-                #muerte, vidas = pacman_personaje.choque_fantasma(fantasma_rect, vidas) a
+                pacman_personaje.velocidad * 0.9 
         dot_comidos = len(lista_comida_orig) - len(lista_comida)
 
         for f in lista_fants:
@@ -391,17 +418,16 @@ while ejecutando:
             fase_actual = 1 
             fuente_titulo = pygame.font.SysFont("comicans", 60, bold = True)
             texto_titulo = fuente_titulo.render("PAC-MAN", True, amarillo) 
-            pantalla.blit(texto_titulo, (ancho // 2 - texto_titulo.get_width() // 2, 250))
+            pantalla.blit(texto_titulo, (ancho // 2 - texto_titulo.get_width() // 2, 250)) 
 
         if vidas == 0: #si se queda sin vidas pasa a la pantalla de game over
             estado = "OVER" 
 
-        
         if score >= 10000 and not ya_recibio_vida_extra: # si llega a 10mil puntos se le suma una vida
             vidas += 1
-            ya_recibio_vida_extra = True
+            ya_recibio_vida_extra = True 
             sonido_vida_extra.play() 
-        
+    
     elif estado == "OVER":
         for evento in pygame.event.get(): 
             if evento.type == pygame.QUIT:
