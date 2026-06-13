@@ -192,10 +192,13 @@ class Hungry(Fantasma): # actúa como clyde si queda mucha comida
                     self.tile_objetivo = pacman_tile
                 else:
                     self.tile_objetivo = self.tile_esquina
+            elif len(lista_comida) == 0:
+                self.tile_objetivo = pacman_tile
             else:
-                self.tile_objetivo = lista_comida[0] # en primera instancia, hago que su objetivo sea la primera comida de la lista
-                if self.tile_objetivo == (self.x, self.y): # cuando finalmente llega a ese primer objetivo, le asigno otro
-                    self.comida_random = random.randint(0, len(lista_comida)-1)
+                if self.tile_objetivo not in lista_comida: #por si pacman se come la comida a la cual hungry estaba yendo durante el viaje
+                    self.tile_objetivo = lista_comida[0] # le asigno la primera comida disponible en el mapa
+                elif self.tile_objetivo == (self.x, self.y): #si llegó a la tile donde estaba yendo 
+                    self.comida_random = random.randint(0, len(lista_comida)-1) # si ya llegó, le asigno una comida random de la lista
                     self.tile_objetivo = lista_comida[self.comida_random]              
 
 # IDEAS
