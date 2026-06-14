@@ -281,11 +281,22 @@ class Inky(Fantasma): # tal vez sería mejor que en dicc_fantasmas se guarde tam
             self.tile_objetivo = (self.punto_cero[0]-self.vector[0], self.punto_cero[1]-self.vector[1])
 
 class Clyde(Fantasma):
-    def __init__(self, x, y, tile_esquina):
-        super().__init__(x, y, (250, 171, 52), tile_esquina)
+    def __init__(self, x, y, tile_esquina, tamaño_tile):
+        super().__init__(x, y, (250, 171, 52), tile_esquina, tamaño_tile)
         self.distancia_clyde_y_pacman = 0
+        self.nombre = 'Clyde'
+        self.sprites_vivos = {
+            "ARRIBA": pygame.transform.scale(pygame.image.load('clyde_arriba.jpeg'), (tamaño_tile, tamaño_tile)),
+            "ABAJO": pygame.transform.scale(pygame.image.load('clyde_abajo.jpeg'), (tamaño_tile, tamaño_tile)),
+            "IZQUIERDA": pygame.transform.scale(pygame.image.load('clyde_izq.jpeg'), (tamaño_tile, tamaño_tile)),
+            "DERECHA": pygame.transform.scale(pygame.image.load('clyde_der.jpeg'), (tamaño_tile, tamaño_tile))
+        }
+        self.imagen_actual = self.sprites_vivos["IZQUIERDA"]
 
     def actualizar_objetivo(self, pacman_tile):
+        if self.saliendo:
+            self.tile_objetivo = self.objetivo_salida
+            return
         if self.modo == "Scatter":
             self.tile_objetivo = self.tile_esquina
         elif self.modo == "Chase":
@@ -294,6 +305,14 @@ class Clyde(Fantasma):
                 self.tile_objetivo = pacman_tile
             else:
                 self.tile_objetivo = self.tile_esquina
+        elif self.modo == "Ojos":
+            self.tile_objetivo = self.objetivo_ghost_house
+
+
+class Hungry(Fantasma):
+    def __init__(self, x, y, tile_esquina):
+        super().__init__(x, y, (255, 255, 255), tile_esquina)
+        self.comida_random = 0
 
     def actualizar_objetivo(self, pacman_tile, lista_comida):
         if self.modo == "Scatter":
@@ -312,7 +331,24 @@ class Clyde(Fantasma):
                     self.tile_objetivo = lista_comida[0] # le asigno la primera comida disponible en el mapa
                 elif self.tile_objetivo == (self.x, self.y): #si llegó a la tile donde estaba yendo 
                     self.comida_random = random.randint(0, len(lista_comida)-1) # si ya llegó, le asigno una comida random de la lista
-                    self.tile_objetivo = lista_comida[self.comida_random]              
+                    self.tile_objetivo = lista_comida[self.comida_random] 
+
+
+class Mysterious(Fantasma): # se mueve como pinky, pero en la pantalla aparece parpadeante y parece que se teletransporta
+    def __init__(self, x, y, tile_esquina, tamaño_tile):
+        super().__init__(x, y, (255, 184, 255), tile_esquina, tamaño_tile)
+
+    def actualizar_objetivo(self, pacman_tile, pacman_dir):
+        if self.saliendo:
+            self.tile_objetivo = self.objetivo_salida
+            return
+        if self.modo == "Scatter":
+            self.tile_objetivo = self.tile_esquina
+        elif self.modo == "Chase":
+            dx, dy = pacman_dir
+            self.tile_objetivo = (pacman_tile[0] + dx * 4, pacman_tile[1] + dy * 4) # para que esté 4 posiciones adelante de la dirección actual de Pac-Man
+        elif self.modo == "Ojos":
+            self.tile_objetivo = self.objetivo_ghost_house              
 
 # IDEAS
 # hacer que se printee una x en el tile objetivo así corroborar si están funcionando bien los algoritmos

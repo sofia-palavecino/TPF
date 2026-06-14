@@ -2,7 +2,7 @@ import pygame
 from pacman import Pared, Pacman
 from mapa import cargar_mapa, verificar_mapa, dibujar_mapa
 from pantallas import pantalla_main, pantalla_fants, pantalla_game, margen_mapa, pantalla_esquina, pantalla_aprender, pantalla_preparado
-from fantasmas import Pinky, Blinky
+from fantasmas import Pinky, Blinky, Clyde
 pygame.init() 
 pygame.mixer.init() 
 
@@ -197,6 +197,8 @@ def reiniciar_juego(): # funcion para cargar todos los datos de cero
             nuevo_fant = Blinky(g_col, g_fil, tile_esquina_real)
         elif nombre_f == 'Pinky':
             nuevo_fant = Pinky(g_col, g_fil, tile_esquina_real)
+        elif nombre_f == 'Clyde':
+            nuevo_fant = Clyde(g_col, g_fil, tile_esquina_real)
         else:
             continue
 
@@ -282,13 +284,15 @@ while ejecutando:
                                     nuevo_fant = Blinky(g_col, g_fil, tile_esquina_real, tamaño_bloque)
                                 elif nombre_f == 'Pinky':
                                     nuevo_fant = Pinky(g_col, g_fil, tile_esquina_real, tamaño_bloque)
+                                elif nombre_f == 'Clyde':
+                                    nuevo_fant = Clyde(g_col, g_fil, tile_esquina_real, tamaño_bloque)
                                 
                                 nuevo_fant.activo = True if i == 0 else False
                                 nuevo_fant.saliendo = True if i == 0 else False
                                 nuevo_fant.orden_salida = i
                                 nuevo_fant.direccion_actual = "ARRIBA" if i == 0 else "IZQUIERDA"
                                 
-                                if nombre_f in ['Blinky', 'Pinky']:
+                                if nombre_f in ['Blinky', 'Pinky', 'Clyde']:
                                     lista_fants.append(nuevo_fant)
                             
                             tiempo_fase_inicio = pygame.time.get_ticks()
@@ -342,7 +346,7 @@ while ejecutando:
         pacman_tile_x = int(pacman_personaje.x // tamaño_bloque)
         pacman_tile_y = int(pacman_personaje.y // tamaño_bloque)
         pacman_tile = (pacman_tile_x, pacman_tile_y)
-        # traduzco la velocidad de píxeles a dirección cartesiana para Pinky/Inky
+        # traduzco la velocidad de píxeles a dirección cartesiana para wd/Inky
         p_dx = 1 if pacman_personaje. dir_actual[0] > 0 else (-1 if pacman_personaje.dir_actual[0] < 0 else 0)
         p_dy = 1 if pacman_personaje.dir_actual[1] > 0 else (-1 if pacman_personaje.dir_actual[1] < 0 else 0)
         pacman_dir_matriz = (p_dx, p_dy)
@@ -427,7 +431,10 @@ while ejecutando:
             if int(f.px) % tamaño_bloque < f.velocidad_actual and int(f.py) % tamaño_bloque < f.velocidad_actual: # verifico que esté alineado a una celda
                 f.px = f.x * tamaño_bloque
                 f.py = f.y * tamaño_bloque
-                f.actualizar_objetivo(pacman_tile, pacman_dir_matriz)
+                if f.nombre == 'Clyde':
+                    f.actualizar_objetivo(pacman_tile)
+                else:
+                    f.actualizar_objetivo(pacman_tile, pacman_dir_matriz)
                 f.decidir_sig_direccion(mapa)
             
             f.actualizar_posicion(mapa)
