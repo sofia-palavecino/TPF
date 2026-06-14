@@ -2,7 +2,7 @@ import pygame
 from pacman import Pared, Pacman
 from mapa import cargar_mapa, verificar_mapa, dibujar_mapa
 from pantallas import pantalla_main, pantalla_fants, pantalla_game, margen_mapa, pantalla_esquina, pantalla_aprender, pantalla_preparado
-from fantasmas import Pinky, Blinky, Clyde, Hungry
+from fantasmas import Pinky, Blinky, Clyde, Hungry, Mysterious
 pygame.init() 
 pygame.mixer.init() 
 
@@ -116,7 +116,7 @@ puntos_fantasmas_escala = [200, 400, 800, 1600]
 fantasmas_comidos_en_racha = 0
 ya_recibio_vida_extra = False
 #pantalla fantasmas: 
-opciones_fants = {"Blinky": "El perseguidor", "Pinky": "El emboscador", "Inky": "El flanqueador", "Clyde": "El tímido", "Hungry": "El hambriento", "Spyke": "El ..."}
+opciones_fants = {"Blinky": "El perseguidor", "Pinky": "El emboscador", "Inky": "El flanqueador", "Clyde": "El tímido", "Hungry": "El hambriento", "Mysterious": "El que se teletransporta"}
 
 claves_fants = list(opciones_fants.keys()) #mantener los nombres como una lista facilita al momento de saber en qué opción está el usuario
 lista_colores = [rojo, rosa, azul, verde, violeta, blanco]
@@ -201,6 +201,8 @@ def reiniciar_juego(): # funcion para cargar todos los datos de cero
             nuevo_fant = Clyde(g_col, g_fil, tile_esquina_real)
         elif nombre_f == 'Hungry':
             nuevo_fant = Hungry(g_col, g_fil, tile_esquina_real)
+        elif nombre_f == 'Mysterious':
+            nuevo_fant = Mysterious(g_col, g_fil, tile_esquina_real)
         else:
             continue
 
@@ -290,13 +292,15 @@ while ejecutando:
                                     nuevo_fant = Clyde(g_col, g_fil, tile_esquina_real, tamaño_bloque)
                                 elif nombre_f == 'Hungry':
                                     nuevo_fant = Hungry(g_col, g_fil, tile_esquina_real, tamaño_bloque)
+                                elif nombre_f == 'Mysterious':
+                                    nuevo_fant = Mysterious(g_col, g_fil, tile_esquina_real, tamaño_bloque)
                                 
                                 nuevo_fant.activo = True if i == 0 else False
                                 nuevo_fant.saliendo = True if i == 0 else False
                                 nuevo_fant.orden_salida = i
                                 nuevo_fant.direccion_actual = "ARRIBA" if i == 0 else "IZQUIERDA"
                                 
-                                if nombre_f in ['Blinky', 'Pinky', 'Clyde', 'Hungry']:
+                                if nombre_f in ['Blinky', 'Pinky', 'Clyde', 'Hungry', 'Mysterious']:
                                     lista_fants.append(nuevo_fant)
                             
                             tiempo_fase_inicio = pygame.time.get_ticks()
@@ -429,7 +433,7 @@ while ejecutando:
                     f.direccion_actual = "ARRIBA"
                     f.cambiar_modo("Scatter")
             if not f.activo:
-                f.dibujar(pantalla, tiempo_susto, modo_asustado)
+                f.dibujar(pantalla, tiempo_susto, modo_asustado, pacman_tile)
                 continue
 
             if int(f.px) % tamaño_bloque < f.velocidad_actual and int(f.py) % tamaño_bloque < f.velocidad_actual: # verifico que esté alineado a una celda
@@ -437,14 +441,14 @@ while ejecutando:
                 f.py = f.y * tamaño_bloque
                 if f.nombre == 'Clyde': # este condicional está porque los métodos de actualizar_objetivo de cada fantasma tienen distintos argumentos de entrada
                     f.actualizar_objetivo(pacman_tile)
-                elif f.nombre == 'Blinky' or f.nombre == 'Pinky':
+                elif f.nombre == 'Blinky' or f.nombre == 'Pinky' or f.nombre == 'Mysterious':
                     f.actualizar_objetivo(pacman_tile, pacman_dir_matriz)
                 elif f.nombre == 'Hungry':
                     f.actualizar_objetivo(pacman_tile, lista_comida)
                 f.decidir_sig_direccion(mapa)
             
             f.actualizar_posicion(mapa)
-            f.dibujar(pantalla, tiempo_susto, modo_asustado)
+            f.dibujar(pantalla, tiempo_susto, modo_asustado, pacman_tile)
 
             rect_fantasma_actual = pygame.Rect(f.px, f.py, tamaño_bloque, tamaño_bloque)
 
