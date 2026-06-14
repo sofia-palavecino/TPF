@@ -309,29 +309,52 @@ class Clyde(Fantasma):
             self.tile_objetivo = self.objetivo_ghost_house
 
 
-class Hungry(Fantasma):
-    def __init__(self, x, y, tile_esquina):
-        super().__init__(x, y, (255, 255, 255), tile_esquina)
+class Hungry(Fantasma): # si hay mucha comida, actúa como clyde. si queda poca comida, persigue la comida
+    def __init__(self, x, y, tile_esquina, tamaño_tile):
+        super().__init__(x, y, (255, 255, 255), tile_esquina, tamaño_tile)
         self.comida_random = 0
+        self.nombre = 'Hungry'
+        self.sprites_vivos = {
+            "ARRIBA": pygame.transform.scale(pygame.image.load('hungry_arriba.jpg'), (tamaño_tile, tamaño_tile)),
+            "ABAJO": pygame.transform.scale(pygame.image.load('hungry_abajo.jpg'), (tamaño_tile, tamaño_tile)),
+            "IZQUIERDA": pygame.transform.scale(pygame.image.load('hungry_izq.jpg'), (tamaño_tile, tamaño_tile)),
+            "DERECHA": pygame.transform.scale(pygame.image.load('hungry_der.jpg'), (tamaño_tile, tamaño_tile))
+        }
+        self.imagen_actual = self.sprites_vivos["IZQUIERDA"]
 
     def actualizar_objetivo(self, pacman_tile, lista_comida):
+        if self.saliendo:
+            self.tile_objetivo = self.objetivo_salida
+            return
         if self.modo == "Scatter":
             self.tile_objetivo = self.tile_esquina
         elif self.modo == "Chase":
-            if len(lista_comida) > 15:
-                self.distancia_hungry_y_pacman = self.calcular_distancia((self.x,self.y), pacman_tile)
-                if self.distancia_hungry_y_pacman > 8:
-                    self.tile_objetivo = pacman_tile
-                else:
-                    self.tile_objetivo = self.tile_esquina
+            if len(lista_comida) > 30:
+                self.tile_objetivo = pacman_tile
+                # self.distancia_hungry_y_pacman = self.calcular_distancia((self.x,self.y), pacman_tile)
+                # if self.distancia_hungry_y_pacman > 8:
+                #     self.tile_objetivo = pacman_tile
+                # else:
+                #     self.tile_objetivo = self.tile_esquina
             elif len(lista_comida) == 0:
                 self.tile_objetivo = pacman_tile
             else:
                 if self.tile_objetivo not in lista_comida: #por si pacman se come la comida a la cual hungry estaba yendo durante el viaje
-                    self.tile_objetivo = lista_comida[0] # le asigno la primera comida disponible en el mapa
-                elif self.tile_objetivo == (self.x, self.y): #si llegó a la tile donde estaba yendo 
+                    #self.tile_objetivo = lista_comida[0] # le asigno la primera comida disponible en el mapa
                     self.comida_random = random.randint(0, len(lista_comida)-1) # si ya llegó, le asigno una comida random de la lista
-                    self.tile_objetivo = lista_comida[self.comida_random] 
+                    self.tile_objetivo = lista_comida[self.comida_random]  
+                else:
+                    self.distancia_hungry_y_objetivo = self.calcular_distancia(self.tile_objetivo, (self.x, self.y))
+                    if self.distancia_hungry_y_objetivo <= 1: # si llegó a la tile donde estaba yendo
+                        self.comida_random = random.randint(0, len(lista_comida)-1) # si ya llegó, le asigno una comida random de la lista
+                        self.tile_objetivo = lista_comida[self.comida_random]    
+                
+                # elif self.tile_objetivo == (self.x, self.y): #si llegó a la tile donde estaba yendo 
+                #     self.comida_random = random.randint(0, len(lista_comida)-1) # si ya llegó, le asigno una comida random de la lista
+                #     self.tile_objetivo = lista_comida[self.comida_random]
+
+        elif self.modo == "Ojos":
+            self.tile_objetivo = self.objetivo_ghost_house 
 
 
 class Mysterious(Fantasma): # se mueve como pinky, pero en la pantalla aparece parpadeante y parece que se teletransporta
