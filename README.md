@@ -1,9 +1,13 @@
 # Trabajo Práctico Final: Pac-Man
 
 ## Grupo 10: Alba Camila, Argüello Paola, Palavecino Ana Sofía
-
+<p align="justify" style="font-size: 0.9em;">
 Este proyecto consiste en una versión jugable de Pac-Man en Python utilizando la librería PyGame. El objetivo fue reproducir la jugabilidad del juego original de Namco (1980), incluyendo el movimiento del personaje, las velocidades y los tiempos, la recolección de puntos y un sistema avanzado de inteligencia artificial para el comportamiento dinámico de los fantasmas.
-<img src="pacman.gif" width="500" alt="Demo">
+</p>
+
+<p align="center">
+   <img src="pacman.gif" width="500" alt="Demo">
+</p>
 ---
 
 ## Características del Juego
@@ -19,7 +23,9 @@ Este proyecto consiste en una versión jugable de Pac-Man en Python utilizando l
         + **<u>Hungry (lila):</u>** su tile objetivo son los power pellets, impide que Pac-Man llegue a ellos.
         + **<u>Mysterious (verde):</u>** se "teletransporta" moviendose de a 3 casilleros.
     * **Scatter:** cada fantasma tiene un tile objetivo fijo, ubicado en una de las cuatro esquinas del mapa.
+    <p align="center">
     <img src="scatter.png" width="400" alt="Texto alternativo">
+    </p>
     
     * **Asustado:** al consumir un power pellet, todos los fantasmas activos invierten su dirección, cambian de color y eligen direcciones al azar en las intersecciones. 
 * **Ciclo de Vida de los Fantasmas:** al ser devorados por Pac-Man, se convierten en ojos dinámicos orientados hacia su dirección de movimiento que viajan de regreso a la *Ghost House* para regenerarse.
