@@ -20,6 +20,7 @@ Este proyecto consiste en una versión jugable de Pac-Man en Python utilizando l
         + **<u>Mysterious (verde):</u>** se "teletransporta" moviendose de a 3 casilleros.
     * **Scatter:** cada fantasma tiene un tile objetivo fijo, ubicado en una de las cuatro esquinas del mapa.
     <img src="scatter.png" width="400" alt="Texto alternativo">
+    
     * **Asustado:** al consumir un power pellet, todos los fantasmas activos invierten su dirección, cambian de color y eligen direcciones al azar en las intersecciones. 
 * **Ciclo de Vida de los Fantasmas:** al ser devorados por Pac-Man, se convierten en ojos dinámicos orientados hacia su dirección de movimiento que viajan de regreso a la *Ghost House* para regenerarse.
 * **Efectos de Sonido:** totalmente integrado con audios arcade para la muerte, el consumo de puntos y los estados especiales.
