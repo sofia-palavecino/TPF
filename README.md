@@ -8,7 +8,6 @@ Este proyecto consiste en una versión jugable de Pac-Man en Python utilizando l
 <p align="center">
    <img src="pacman.gif" width="500" alt="Demo">
 </p>
----
 
 ## Características del Juego
 
