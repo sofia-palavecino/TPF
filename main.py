@@ -2,7 +2,7 @@ import pygame
 from pacman import Pared, Pacman
 from mapa import cargar_mapa, verificar_mapa, dibujar_mapa
 from pantallas import pantalla_main, pantalla_fants, pantalla_game, margen_mapa, pantalla_esquina, pantalla_aprender, pantalla_preparado
-from fantasmas import Pinky, Blinky
+from fantasmas import Pinky, Blinky, Clyde
 pygame.init() 
 pygame.mixer.init() 
 
@@ -40,7 +40,7 @@ def guardar_high_score(nuevo_record):
         with open("highscore.txt", "w") as archivo:
             archivo.write(str(nuevo_record))
     except Exception as e:
-        print(f'No se pudo guardar el high score: {e}')
+        print(f'No se pudo guardar el high score: {e}') 
 
 with open ("mapa.txt", "r") as archivo: 
     for fila, linea in enumerate (archivo):
@@ -90,12 +90,14 @@ gris = (128, 128, 128)
 sonido_comer = pygame.mixer.Sound ("comer_punto.mp3")
 sonido_power = pygame.mixer.Sound ("comer_pellet.mp3")
 sonido_intro = pygame.mixer.Sound ("intro.mp3")
+sonido_intro.set_volume(0.3)
 sonido_muerte_fants = pygame.mixer.Sound("muerte_fants.mp3")
 sonido_muerte_pacman = pygame.mixer.Sound ("muerte_pacman.mp3") #falta agregarlo a cuando muere
 sonido_nivel = pygame.mixer.Sound ("nivel.mp3")
 sonido_vida_extra = pygame.mixer.Sound ("vida_extra.mp3")
 sonido_select = pygame.mixer.Sound ("select.mp3") 
 sonido_denied = pygame.mixer.Sound ("denied.mp3")
+sonido_high = pygame.mixer.Sound("high_score.mp3") 
 
 #datos para comenzar pygame:
 reloj = pygame.time.Clock()
@@ -108,11 +110,14 @@ score = 0
 punto_fants = 0
 nivel = 1  
 high_score = cargar_high_score()
+supero = False #agregar que cuando supera el high score sea True, y el sonido 
+
 puntos_fantasmas_escala = [200, 400, 800, 1600] 
 fantasmas_comidos_en_racha = 0
 ya_recibio_vida_extra = False
 #pantalla fantasmas: 
 opciones_fants = {"Blinky": "El perseguidor", "Pinky": "El emboscador", "Inky": "El flanqueador", "Clyde": "El tímido", "Hungry": "El hambriento", "Spyke": "El ..."}
+
 claves_fants = list(opciones_fants.keys()) #mantener los nombres como una lista facilita al momento de saber en qué opción está el usuario
 lista_colores = [rojo, rosa, azul, verde, violeta, blanco]
 colores_fants = dict(zip(claves_fants, lista_colores)) #creo un diccionarios con los nombres de los fantasmas y sus colores 
@@ -155,16 +160,16 @@ def reiniciar_juego(): # funcion para cargar todos los datos de cero
     global score, vidas, nivel, lista_comida, lista_power, fants_elegidos
     global esquinas_elegidas, ind_fant, modo_asustado, tiempo_susto
     global tiempo_fase_inicio, indice_fase_actual, fase_actual, fantasmas_inicializados
-    global lista_fants, puntos_fantasmas_escala, ya_recibio_vida_extra
+    global lista_fants, puntos_fantasmas_escala, ya_recibio_vida_extra, ind_selecc, supero 
     
     fants_elegidos = []        
     esquinas_elegidas = {}     
     ind_fant = 0               
     ind_selecc = 0           
-    fantasma_actual = claves_fants[ind_selecc]
     score = 0
-    vidas = 3
+    vidas = 3 
     nivel = 1
+    supero = False 
     modo_asustado = False
     tiempo_susto = 0
     ya_recibio_vida_extra = False
@@ -192,6 +197,8 @@ def reiniciar_juego(): # funcion para cargar todos los datos de cero
             nuevo_fant = Blinky(g_col, g_fil, tile_esquina_real)
         elif nombre_f == 'Pinky':
             nuevo_fant = Pinky(g_col, g_fil, tile_esquina_real)
+        elif nombre_f == 'Clyde':
+            nuevo_fant = Clyde(g_col, g_fil, tile_esquina_real)
         else:
             continue
 
@@ -215,6 +222,7 @@ def reiniciar_juego(): # funcion para cargar todos los datos de cero
 while ejecutando:
     reloj.tick(60)
     tiempo = pygame.time.get_ticks()
+
     if estado == "MENU": #Página de inicio
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -249,6 +257,7 @@ while ejecutando:
                         if len(fants_elegidos) == 4:
                             estado = "MENU_ESQUINAS"
         pantalla_fants(pantalla, fants_elegidos, opciones_fants, lista_colores, ind_selecc)
+
     elif estado == "MENU_ESQUINAS":
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -275,13 +284,15 @@ while ejecutando:
                                     nuevo_fant = Blinky(g_col, g_fil, tile_esquina_real, tamaño_bloque)
                                 elif nombre_f == 'Pinky':
                                     nuevo_fant = Pinky(g_col, g_fil, tile_esquina_real, tamaño_bloque)
+                                elif nombre_f == 'Clyde':
+                                    nuevo_fant = Clyde(g_col, g_fil, tile_esquina_real, tamaño_bloque)
                                 
                                 nuevo_fant.activo = True if i == 0 else False
                                 nuevo_fant.saliendo = True if i == 0 else False
                                 nuevo_fant.orden_salida = i
                                 nuevo_fant.direccion_actual = "ARRIBA" if i == 0 else "IZQUIERDA"
                                 
-                                if nombre_f in ['Blinky', 'Pinky']:
+                                if nombre_f in ['Blinky', 'Pinky', 'Clyde']:
                                     lista_fants.append(nuevo_fant)
                             
                             tiempo_fase_inicio = pygame.time.get_ticks()
@@ -327,7 +338,7 @@ while ejecutando:
         
         pantalla.fill(negro)
         dibujar_mapa(lista_comida, lista_power)
-        margen_mapa(pantalla, score, nivel, high_score, vidas) 
+        margen_mapa(pantalla, score, nivel, high_score, vidas, supero) 
 
         teclas = pygame.key.get_pressed()
         pacman_personaje.move(lista_paredes, lista_ghost_house_rect, teclas)
@@ -335,7 +346,7 @@ while ejecutando:
         pacman_tile_x = int(pacman_personaje.x // tamaño_bloque)
         pacman_tile_y = int(pacman_personaje.y // tamaño_bloque)
         pacman_tile = (pacman_tile_x, pacman_tile_y)
-        # traduzco la velocidad de píxeles a dirección cartesiana para Pinky/Inky
+        # traduzco la velocidad de píxeles a dirección cartesiana para wd/Inky
         p_dx = 1 if pacman_personaje. dir_actual[0] > 0 else (-1 if pacman_personaje.dir_actual[0] < 0 else 0)
         p_dy = 1 if pacman_personaje.dir_actual[1] > 0 else (-1 if pacman_personaje.dir_actual[1] < 0 else 0)
         pacman_dir_matriz = (p_dx, p_dy)
@@ -360,6 +371,10 @@ while ejecutando:
 
         if score > high_score:
             high_score = score
+            guardar_high_score(high_score)
+            if not supero: 
+                supero = True
+                sonido_high.play()
 
         if not modo_asustado:
             tiempo_en_fase = (pygame.time.get_ticks() - tiempo_fase_inicio) / 1000.0 # para calcular los segundos que pasaron desde que inció la fase actual
@@ -416,7 +431,10 @@ while ejecutando:
             if int(f.px) % tamaño_bloque < f.velocidad_actual and int(f.py) % tamaño_bloque < f.velocidad_actual: # verifico que esté alineado a una celda
                 f.px = f.x * tamaño_bloque
                 f.py = f.y * tamaño_bloque
-                f.actualizar_objetivo(pacman_tile, pacman_dir_matriz)
+                if f.nombre == 'Clyde':
+                    f.actualizar_objetivo(pacman_tile)
+                else:
+                    f.actualizar_objetivo(pacman_tile, pacman_dir_matriz)
                 f.decidir_sig_direccion(mapa)
             
             f.actualizar_posicion(mapa)
@@ -466,7 +484,6 @@ while ejecutando:
             pantalla.blit(texto_titulo, (ancho // 2 - texto_titulo.get_width() // 2, 250)) 
 
         if vidas == 0: #si se queda sin vidas pasa a la pantalla de game over
-            guardar_high_score(high_score)
             estado = "OVER" 
         
         if score >= 10000 and not ya_recibio_vida_extra: # si llega a 10mil puntos se le suma una vida

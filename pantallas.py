@@ -19,10 +19,11 @@ def pantalla_main(pantalla, ancho, tiempo, high_score):
     fuente_score = pygame.font.SysFont("comicans", 24)
     texto_titulo = fuente_titulo.render("PAC-MAN", True, amarillo) 
     texto_instrucciones = fuente_subtitulo.render("presiona ENTER para comenzar", True, blanco)
-    texto_high_score = fuente_score.render(f'HIGH SCORE: {high_score}', True, (255, 255, 255))
-
+    texto_high_score = fuente_score.render("HIGH SCORE: ", True, blanco)
+    num_high = fuente_score.render(f"{high_score}", True, blanco)
     pantalla.blit(texto_titulo, (ancho // 2 - texto_titulo.get_width() // 2, 250)) #centrar el texto
     pantalla.blit(texto_high_score, (ancho // 2 - texto_high_score.get_width() // 2, 80))
+    pantalla.blit(num_high, (290, 100))
     if (tiempo // 500) % 2 == 0: #cada 500ms se cumple, ahí se imprime el texto 
         pantalla.blit (texto_instrucciones, (ancho // 2 - texto_instrucciones.get_width() // 2, 400))
     
@@ -76,10 +77,13 @@ def pantalla_game(pantalla, puntaje):
     pantalla.blit(text_descp, (240, 300))
     pantalla.blit(text_descp_1, (80, 350)) 
 
-def margen_mapa(pantalla, score, nivel, high_score, vidas): 
+def margen_mapa(pantalla, score, nivel, high_score, vidas, supero): 
     fuente_score = pygame.font.SysFont("comicans", 30, bold = True)
     text_score = fuente_score.render(f"score: {score}", True, amarillo)
-    text_high = fuente_score.render (f"best: {high_score}", True, blanco)
+    if supero:
+        text_high = fuente_score.render (f"best: {high_score}", True, verde)
+    else: 
+        text_high = fuente_score.render (f"best: {high_score}", True, blanco)
     fuente_lvl = pygame.font.SysFont("trebuchetms", 20, bold = True)
     text_lvl = fuente_lvl.render (f"LVL {nivel}", True, blanco)
     pantalla.blit(text_score, (20, 705))
@@ -89,6 +93,7 @@ def margen_mapa(pantalla, score, nivel, high_score, vidas):
     for i in range(vidas): 
         centro_x = 450 + 45 * i 
         pantalla.blit(pacman_abierto, (centro_x, 690))
+    
     
 def pantalla_esquina (pantalla, fantasma_actual, fants_elegidos, ind_fant, colores_fants, opciones_esquina, esquinas_elegidas):
     pantalla.fill(negro)
@@ -139,4 +144,4 @@ def pantalla_preparado(pantalla):
     pantalla.fill(negro)
     fuente_ready = pygame.font.SysFont("trebuchetms", 30, bold = True)
     text_ready = fuente_ready.render("READY?", True, amarillo)
-    pantalla.blit(text_ready, (300, 300)) 
+    pantalla.blit(text_ready, (250, 300)) 
