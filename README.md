@@ -20,7 +20,7 @@ Este proyecto consiste en una versión jugable de Pac-Man en Python utilizando l
         + **<u>Inky (celeste):</u>** su tile objetivo se calcula en dos pasos: primero se toma el tile ubicado 2 posiciones adelante de Pac-Man; luego se traza un vector desde la posición de Blinky hasta ese tile y se duplica. Si Blinky no está en la partida, se utiliza al azar alguno de los otros fantasmas.
         + **<u>Clyde (naranja):</u>** si su distancia a Pac-Man es mayor a 8 tiles, su target es la posición de Pac-Man. Si está a 8 tiles o menos, su target pasa a ser su esquina de Scatter. Evita acercarse demasiado.
         + **<u>Silly (lila):</u>** elige una dirección aleatoria válida.
-        + **<u>Mysterious (verde):</u>** se "teletransporta" moviendose de a 3 casilleros.
+        + **<u>Mysterious (verde):</u>** únicamente aparece si está en un radio menor a 12 tiles de Pac-Man.
     * **Scatter:** cada fantasma tiene un tile objetivo fijo, ubicado en una de las cuatro esquinas del mapa.
     <p align="center">
     <img src="scatter.png" width="400" alt="Texto alternativo">
