@@ -5,6 +5,10 @@ from pantallas import pantalla_main, pantalla_fants, pantalla_game, margen_mapa,
 from fantasmas import Pinky, Blinky, Clyde, Mysterious, Silly
 pygame.init() 
 pygame.mixer.init() 
+pygame.display.set_caption("PAC-MAN")
+icono = pygame.image.load("logo.png")
+icono = pygame.transform.scale(icono, (32, 32))
+pygame.display.set_icon(icono) 
 
 lista_paredes = []
 lista_ghost_house = []
