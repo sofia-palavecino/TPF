@@ -312,53 +312,56 @@ class Clyde(Fantasma):
         elif self.modo == "Ojos":
             self.tile_objetivo = self.objetivo_ghost_house
 
-
-class Hungry(Fantasma): # si hay mucha comida, actúa como clyde. si queda poca comida, persigue la comida
+class Silly(Fantasma): # su movimiento es random, pero respeta que no puede volver hacia atrás
     def __init__(self, x, y, tile_esquina, tamaño_tile):
-        super().__init__(x, y, (255, 255, 255), tile_esquina, tamaño_tile)
-        self.comida_random = 0
-        self.nombre = 'Hungry'
+        super().__init__(x, y, (250, 171, 52), tile_esquina, tamaño_tile)
+        self.nombre = 'Silly'
         self.sprites_vivos = {
-            "ARRIBA": pygame.transform.scale(pygame.image.load('hungry_arriba.jpg'), (tamaño_tile, tamaño_tile)),
-            "ABAJO": pygame.transform.scale(pygame.image.load('hungry_abajo.jpg'), (tamaño_tile, tamaño_tile)),
-            "IZQUIERDA": pygame.transform.scale(pygame.image.load('hungry_izq.jpg'), (tamaño_tile, tamaño_tile)),
-            "DERECHA": pygame.transform.scale(pygame.image.load('hungry_der.jpg'), (tamaño_tile, tamaño_tile))
+            "ARRIBA": pygame.transform.scale(pygame.image.load('silly_arriba.jpg'), (tamaño_tile, tamaño_tile)),
+            "ABAJO": pygame.transform.scale(pygame.image.load('silly_abajo.jpg'), (tamaño_tile, tamaño_tile)),
+            "IZQUIERDA": pygame.transform.scale(pygame.image.load('silly_izq.jpg'), (tamaño_tile, tamaño_tile)),
+            "DERECHA": pygame.transform.scale(pygame.image.load('silly_der.jpg'), (tamaño_tile, tamaño_tile))
         }
         self.imagen_actual = self.sprites_vivos["IZQUIERDA"]
 
-    def actualizar_objetivo(self, pacman_tile, lista_comida):
+    def decidir_sig_direccion_silly(self, mapa): # se aplica una logica similar al movimiento de los fantasmas en modo asustado     
+        opciones_validas = {}
+        dir_opuesta = self.obtener_direccion_opuesta(self.direccion_actual)
+        for nombre_dir, (dx, dy) in self.direcciones.items():
+            if nombre_dir == dir_opuesta:
+                continue
+            sig_x = self.x + dx
+            sig_y = self.y + dy
+            if 0 <= sig_y < len(mapa) and 0 <= sig_x < len(mapa[0]):
+                caracter_tile = mapa[sig_y][sig_x]
+                if caracter_tile in ('X'):
+                    continue
+                if caracter_tile == '-':
+                    continue
+                opciones_validas[nombre_dir] = (sig_x, sig_y)
+        if not opciones_validas:
+            self.direccion_actual = dir_opuesta # si por alguna razon no tiene a donde ir, se le permite darse vuelta 180 grados
+            return
+        self.direccion_actual = random.choice(list(opciones_validas.keys()))
+
+    def actualizar_objetivo(self, mapa):
         if self.saliendo:
             self.tile_objetivo = self.objetivo_salida
             return
         if self.modo == "Scatter":
             self.tile_objetivo = self.tile_esquina
-        elif self.modo == "Chase":
-            if len(lista_comida) > 30:
-                self.tile_objetivo = pacman_tile
-                # self.distancia_hungry_y_pacman = self.calcular_distancia((self.x,self.y), pacman_tile)
-                # if self.distancia_hungry_y_pacman > 8:
-                #     self.tile_objetivo = pacman_tile
-                # else:
-                #     self.tile_objetivo = self.tile_esquina
-            elif len(lista_comida) == 0:
-                self.tile_objetivo = pacman_tile
-            else:
-                if self.tile_objetivo not in lista_comida: #por si pacman se come la comida a la cual hungry estaba yendo durante el viaje
-                    #self.tile_objetivo = lista_comida[0] # le asigno la primera comida disponible en el mapa
-                    self.comida_random = random.randint(0, len(lista_comida)-1) # si ya llegó, le asigno una comida random de la lista
-                    self.tile_objetivo = lista_comida[self.comida_random]  
-                else:
-                    self.distancia_hungry_y_objetivo = self.calcular_distancia(self.tile_objetivo, (self.x, self.y))
-                    if self.distancia_hungry_y_objetivo <= 1: # si llegó a la tile donde estaba yendo
-                        self.comida_random = random.randint(0, len(lista_comida)-1) # si ya llegó, le asigno una comida random de la lista
-                        self.tile_objetivo = lista_comida[self.comida_random]    
-                
-                # elif self.tile_objetivo == (self.x, self.y): #si llegó a la tile donde estaba yendo 
-                #     self.comida_random = random.randint(0, len(lista_comida)-1) # si ya llegó, le asigno una comida random de la lista
-                #     self.tile_objetivo = lista_comida[self.comida_random]
-
+        elif self.modo == "Chase": # se le suma a su posicion actual la direccion random elegida
+            self.decidir_sig_direccion_silly(mapa)
+            dx, dy = self.direcciones[self.direccion_actual]
+            self.tile_objetivo = (self.x+dx, self.y+dy) 
         elif self.modo == "Ojos":
             self.tile_objetivo = self.objetivo_ghost_house 
+
+
+
+
+
+
 
 
 class Mysterious(Fantasma): # se mueve como pinky, pero hacia atrás de pacman. en la pantalla aparece parpadeante y parece que se teletransporta

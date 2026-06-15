@@ -2,7 +2,7 @@ import pygame
 from pacman import Pared, Pacman
 from mapa import cargar_mapa, verificar_mapa, dibujar_mapa
 from pantallas import pantalla_main, pantalla_fants, pantalla_game, margen_mapa, pantalla_esquina, pantalla_aprender, pantalla_preparado
-from fantasmas import Pinky, Blinky, Clyde, Hungry, Mysterious
+from fantasmas import Pinky, Blinky, Clyde, Mysterious, Silly
 pygame.init() 
 pygame.mixer.init() 
 
@@ -116,7 +116,7 @@ puntos_fantasmas_escala = [200, 400, 800, 1600]
 fantasmas_comidos_en_racha = 0
 ya_recibio_vida_extra = False
 #pantalla fantasmas: 
-opciones_fants = {"Blinky": "El perseguidor", "Pinky": "El emboscador", "Inky": "El flanqueador", "Clyde": "El tímido", "Hungry": "El hambriento", "Mysterious": "El que se teletransporta"}
+opciones_fants = {"Blinky": "El perseguidor", "Pinky": "El emboscador", "Inky": "El flanqueador", "Clyde": "El tímido", "Silly": "El confundido", "Mysterious": "El que se teletransporta"}
 
 claves_fants = list(opciones_fants.keys()) #mantener los nombres como una lista facilita al momento de saber en qué opción está el usuario
 lista_colores = [rojo, rosa, azul, verde, violeta, blanco]
@@ -199,10 +199,12 @@ def reiniciar_juego(): # funcion para cargar todos los datos de cero
             nuevo_fant = Pinky(g_col, g_fil, tile_esquina_real)
         elif nombre_f == 'Clyde':
             nuevo_fant = Clyde(g_col, g_fil, tile_esquina_real)
-        elif nombre_f == 'Hungry':
-            nuevo_fant = Hungry(g_col, g_fil, tile_esquina_real)
+        #elif nombre_f == 'Hungry':
+            #nuevo_fant = Hungry(g_col, g_fil, tile_esquina_real)
         elif nombre_f == 'Mysterious':
             nuevo_fant = Mysterious(g_col, g_fil, tile_esquina_real)
+        elif nombre_f == 'Silly':
+            nuevo_fant = Silly(g_col, g_fil, tile_esquina_real)
         else:
             continue
 
@@ -290,17 +292,19 @@ while ejecutando:
                                     nuevo_fant = Pinky(g_col, g_fil, tile_esquina_real, tamaño_bloque)
                                 elif nombre_f == 'Clyde':
                                     nuevo_fant = Clyde(g_col, g_fil, tile_esquina_real, tamaño_bloque)
-                                elif nombre_f == 'Hungry':
-                                    nuevo_fant = Hungry(g_col, g_fil, tile_esquina_real, tamaño_bloque)
+                                #elif nombre_f == 'Hungry':
+                                    #nuevo_fant = Hungry(g_col, g_fil, tile_esquina_real, tamaño_bloque)
                                 elif nombre_f == 'Mysterious':
                                     nuevo_fant = Mysterious(g_col, g_fil, tile_esquina_real, tamaño_bloque)
+                                elif nombre_f == 'Silly':
+                                    nuevo_fant = Silly(g_col, g_fil, tile_esquina_real, tamaño_bloque)
                                 
                                 nuevo_fant.activo = True if i == 0 else False
                                 nuevo_fant.saliendo = True if i == 0 else False
                                 nuevo_fant.orden_salida = i
                                 nuevo_fant.direccion_actual = "ARRIBA" if i == 0 else "IZQUIERDA"
                                 
-                                if nombre_f in ['Blinky', 'Pinky', 'Clyde', 'Hungry', 'Mysterious']:
+                                if nombre_f in ['Blinky', 'Pinky', 'Clyde', 'Mysterious', 'Silly']:
                                     lista_fants.append(nuevo_fant)
                             
                             tiempo_fase_inicio = pygame.time.get_ticks()
@@ -417,17 +421,17 @@ while ejecutando:
 
         for f in lista_fants:
             if not f.activo:
-                if f.orden_salida == 1 and dot_comidos >= 30:
+                if f.orden_salida == 1 and score >= 30:
                     f.activo = True
                     f.saliendo = True
                     f.direccion_actual = "ARRIBA"
                     f.cambiar_modo("Scatter")
-                elif f.orden_salida == 2 and dot_comidos >= 60:
+                elif f.orden_salida == 2 and score >= 60:
                     f.activo = True
                     f.saliendo = True
                     f.direccion_actual = "ARRIBA"
                     f.cambiar_modo("Scatter")
-                elif f.orden_salida == 3 and dot_comidos >= 90:
+                elif f.orden_salida == 3 and score >= 90:
                     f.activo = True
                     f.saliendo = True
                     f.direccion_actual = "ARRIBA"
@@ -443,9 +447,11 @@ while ejecutando:
                     f.actualizar_objetivo(pacman_tile)
                 elif f.nombre == 'Blinky' or f.nombre == 'Pinky' or f.nombre == 'Mysterious':
                     f.actualizar_objetivo(pacman_tile, pacman_dir_matriz)
-                elif f.nombre == 'Hungry':
-                    f.actualizar_objetivo(pacman_tile, lista_comida)
-                f.decidir_sig_direccion(mapa)
+                #elif f.nombre == 'Hungry':
+                    #f.actualizar_objetivo(pacman_tile, lista_comida)
+                elif f.nombre == 'Silly':
+                    f.actualizar_objetivo(mapa)
+                f.decidir_sig_direccion(mapa) #?????
             
             f.actualizar_posicion(mapa)
             f.dibujar(pantalla, tiempo_susto, modo_asustado, pacman_tile)
