@@ -1,8 +1,9 @@
 import pygame
+import random
 from pacman import Pared, Pacman
 from mapa import cargar_mapa, verificar_mapa, dibujar_mapa
 from pantallas import pantalla_main, pantalla_fants, pantalla_game, margen_mapa, pantalla_esquina, pantalla_aprender, pantalla_preparado
-from fantasmas import Pinky, Blinky, Clyde, Mysterious, Silly
+from fantasmas import Pinky, Blinky, Clyde, Mysterious, Silly, Inky
 pygame.init() 
 pygame.mixer.init() 
 
@@ -205,6 +206,8 @@ def reiniciar_juego(): # funcion para cargar todos los datos de cero
             nuevo_fant = Mysterious(g_col, g_fil, tile_esquina_real)
         elif nombre_f == 'Silly':
             nuevo_fant = Silly(g_col, g_fil, tile_esquina_real)
+        elif nombre_f == 'Inky':
+            nuevo_fant = Inky(g_col, g_fil, tile_esquina_real)
         else:
             continue
 
@@ -298,13 +301,15 @@ while ejecutando:
                                     nuevo_fant = Mysterious(g_col, g_fil, tile_esquina_real, tamaño_bloque)
                                 elif nombre_f == 'Silly':
                                     nuevo_fant = Silly(g_col, g_fil, tile_esquina_real, tamaño_bloque)
+                                elif nombre_f == 'Inky':
+                                    nuevo_fant = Inky(g_col, g_fil, tile_esquina_real, tamaño_bloque)
                                 
                                 nuevo_fant.activo = True if i == 0 else False
                                 nuevo_fant.saliendo = True if i == 0 else False
                                 nuevo_fant.orden_salida = i
                                 nuevo_fant.direccion_actual = "ARRIBA" if i == 0 else "IZQUIERDA"
                                 
-                                if nombre_f in ['Blinky', 'Pinky', 'Clyde', 'Mysterious', 'Silly']:
+                                if nombre_f in ['Blinky', 'Pinky', 'Clyde', 'Mysterious', 'Silly', 'Inky']:
                                     lista_fants.append(nuevo_fant)
                             
                             tiempo_fase_inicio = pygame.time.get_ticks()
@@ -451,7 +456,9 @@ while ejecutando:
                     #f.actualizar_objetivo(pacman_tile, lista_comida)
                 elif f.nombre == 'Silly':
                     f.actualizar_objetivo(mapa)
-                f.decidir_sig_direccion(mapa) #?????
+                elif f.nombre == 'Inky':
+                    f.actualizar_objetivo(pacman_tile, pacman_dir_matriz, lista_fants)    
+                f.decidir_sig_direccion(mapa)
             
             f.actualizar_posicion(mapa)
             f.dibujar(pantalla, tiempo_susto, modo_asustado, pacman_tile)
