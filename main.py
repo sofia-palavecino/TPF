@@ -1,7 +1,7 @@
 import pygame
 from pacman import Pared, Pacman
 from mapa import cargar_mapa, verificar_mapa, dibujar_mapa
-from pantallas import pantalla_main, pantalla_fants, pantalla_game, margen_mapa, pantalla_esquina, pantalla_aprender, pantalla_preparado
+from pantallas import pantalla_main, pantalla_fants, pantalla_game, margen_mapa, pantalla_esquina, pantalla_preparado
 from fantasmas import Pinky, Blinky, Clyde, Mysterious, Silly
 pygame.init() 
 pygame.mixer.init() 
@@ -309,34 +309,13 @@ while ejecutando:
                             
                             tiempo_fase_inicio = pygame.time.get_ticks()
                             fase_actual = 1
-                            estado = "MODO"
+                            estado = "PREPARADO"
                     else:
                         sonido_denied.play() 
                         pass 
+                    tiempo_pantalla = pygame.time.get_ticks()
 
         pantalla_esquina(pantalla, fantasma_actual, fants_elegidos, ind_fant, colores_fants, opciones_esquina, esquinas_elegidas)
-    
-    elif estado == "MODO": 
-        for evento in pygame.event.get():
-            if evento.type == pygame.QUIT:
-                ejecutando = False
-            if evento.type == pygame.KEYDOWN:
-                if evento.key == pygame.K_DOWN:
-                    ind_modo += 1
-                    if ind_modo >= len(opciones_modo):
-                        ind_modo = 0
-                elif evento.key == pygame.K_UP:
-                    ind_modo -= 1
-                    if ind_modo < 0:
-                        ind_modo = len(opciones_modo) - 1
-                elif evento.key == pygame.K_RETURN:
-                    estado = "PREPARADO"
-                    tiempo_pantalla = pygame.time.get_ticks()
-                    if ind_modo == 0:
-                        modo_juego = "NORMAL"
-                    else:
-                        modo_juego = "APRENDER" #para luego cambiar lo necesario en el turno. 
-        pantalla_aprender(pantalla, opciones_modo, ind_modo)
     
     elif estado == "PREPARADO": 
         pantalla_preparado(pantalla)
