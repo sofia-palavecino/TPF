@@ -409,17 +409,17 @@ while ejecutando:
 
         for f in lista_fants:
             if not f.activo:
-                if f.orden_salida == 1 and dot_comidos >= 30:
+                if f.orden_salida == 1 and score >= 30:
                     f.activo = True
                     f.saliendo = True
                     f.direccion_actual = "ARRIBA"
                     f.cambiar_modo("Scatter")
-                elif f.orden_salida == 2 and dot_comidos >= 60:
+                elif f.orden_salida == 2 and score >= 60:
                     f.activo = True
                     f.saliendo = True
                     f.direccion_actual = "ARRIBA"
                     f.cambiar_modo("Scatter")
-                elif f.orden_salida == 3 and dot_comidos >= 90:
+                elif f.orden_salida == 3 and score >= 90:
                     f.activo = True
                     f.saliendo = True
                     f.direccion_actual = "ARRIBA"
