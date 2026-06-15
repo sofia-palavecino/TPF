@@ -74,12 +74,6 @@ class Pacman:
 
         self.rect.x = self.x
         self.rect.y = self.y 
-    def chocar_vecino (self, vecino_rect):
-        """
-        Devuelve True si se choca el vecino indicado, False si no.
-        vecino_rect: debe ser un objeto pygame.rect
-        """
-        return self.rect.colliderect(vecino_rect) #devuelve true si se choca con ese vecino. 
     
     def puede_moverse(self, dx, dy, lista_paredes, lista_ghost_house_rect):
         """
@@ -112,6 +106,7 @@ class Pacman:
             angulo = 0
         sprite_rotado = pygame.transform.rotate(sprite, angulo)
         pantalla.blit(sprite_rotado, (self.x, self.y))        
+
     def comer(self, lista_comida):
         punto_comida = 0
         ya_comio = False
@@ -135,30 +130,7 @@ class Pacman:
                 punto_power += 50
                 lista_power.remove(coord)
         return punto_power, comio_power, lista_power
-    
-    def choque_fantasma (self, fantasma_rect, vidas):
-        muerte = False
-        if self.rect.colliderect (fantasma_rect):
-            vidas -= 1
-            muerte = True
-        return vidas, muerte
-    def comer_fantasma (self, comio_power, lista_fantasmas, fantasmas_comidos):
-        puntos_fants = 0
-        comio_fantasma = False
-        if comio_power:
-            for fantasma in lista_fantasmas:
-                f_x, f_y = fantasma
-                rect_fants = pygame.Rect (f_x, f_y, 22, 22)
-                if self.rect.colliderect(rect_fants):
-                    lista_fantasmas.remove(fantasma)
-                    comio_fantasma = True
-                    puntos_fants += 200 * fantasmas_comidos
-        return lista_fantasmas, puntos_fants, comio_fantasma 
-                
 
 class Pared: 
     def __init__(self, x, y):
         self.rect = pygame.Rect (x, y, 22, 22)
-
-
-    

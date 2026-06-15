@@ -19,7 +19,7 @@ class Fantasma:
             "Scatter": 2,         
             "Chase": 2,          
             "En Tunel": 1,     
-            "Asustado": 1, 
+            "Asustado": 2, 
             "Ojos": 4
         }
         self.modo = "Scatter" # "Scatter", "Chase", "Asustado", "Ojos"
@@ -156,7 +156,7 @@ class Fantasma:
             if self.direccion_actual in self.sprites_vivos:
                 self.imagen_actual = self.sprites_vivos[self.direccion_actual]
 
-    def dibujar(self, pantalla, tiempo_susto_inicio, modo_asustado_global):
+    def dibujar(self, pantalla, tiempo_susto_inicio, modo_asustado_global, pacman_tile):
         img_a_dibujar = self.imagen_actual
         
         if self.modo == "Ojos":
@@ -176,7 +176,11 @@ class Fantasma:
                 img_a_dibujar = self.img_asustado if hasattr(self, 'img_asustado') else None
         
         if img_a_dibujar is not None:
+            if self.nombre == 'Mysterious' and self.calcular_distancia((self.x, self.y), pacman_tile)>12: # con esta línea logro el poder especial de mysterious: mostrarse solo si está en un ciruclo de radio 12 alrededor de pacman
+                return
             pantalla.blit(img_a_dibujar, (int(self.px), int(self.py)))
+
+
         else: # respaldo por si fallan las imagenes
             centro_x = int(self.px + self.tamaño_tile // 2)
             centro_y = int(self.py + self.tamaño_tile // 2)
@@ -244,41 +248,58 @@ class Pinky(Fantasma):
             self.tile_objetivo = self.objetivo_ghost_house
 
 
-class Inky(Fantasma): # tal vez sería mejor que en dicc_fantasmas se guarde también el estado de los fantasmas. por ejemplo, no se toman en cuenta las coor de blinky si está en modo ojos --> crear el dicc_fantasmas en paralelo a la lista_fants
-    def __init__(self, x, y, tile_esquina):
-        super().__init__(x, y, (15, 250, 242), tile_esquina)
+class Inky(Fantasma):
+    def __init__(self, x, y, tile_esquina, tamaño_tile):
+        super().__init__(x, y, (15, 250, 242), tile_esquina, tamaño_tile)
+        self.nombre = 'Inky'
+        self.sprites_vivos = {
+            "ARRIBA": pygame.transform.scale(pygame.image.load('inky_arriba.jpeg'), (tamaño_tile, tamaño_tile)),
+            "ABAJO": pygame.transform.scale(pygame.image.load('inky_abajo.jpeg'), (tamaño_tile, tamaño_tile)),
+            "IZQUIERDA": pygame.transform.scale(pygame.image.load('inky_izq.jpeg'), (tamaño_tile, tamaño_tile)),
+            "DERECHA": pygame.transform.scale(pygame.image.load('inky_der.jpeg'), (tamaño_tile, tamaño_tile))
+        }
+        self.imagen_actual = self.sprites_vivos["IZQUIERDA"]
+        
         self.pivot = None
         self.punto_cero = None
         self.vector = None
 
-    def elegir_pivot(self, dicc_fantasmas): # dicc_fantasmas me permite usar a un fantasma random como pivot si blinky no está en la partida. dicc fantasma tiene LISTAS de posicion de cada fantasma
-        if "Blinky" in dicc_fantasmas: # esto depende de qué hagamos con cada fantasma cuando es comido: desparece? sus coordenadas están vacías o en la ghost house?
-            self.pivot = dicc_fantasmas["Blinky"]
+    def elegir_fantasma_pivot(self, lista_fants):
+        otros = []
+        blinky_objeto = None
+        for fantasma in lista_fants:
+            if isinstance(fantasma, Blinky):
+                blinky_objeto = fantasma
+            elif fantasma is not self:
+                otros.append(fantasma)
+        if blinky_objeto is not None:
+            fantasma_pivot = blinky_objeto
+        elif otros: #si no está blinky y hay objetos en otros
+            fantasma_pivot = random.choice(otros)
         else:
-            opciones_pivot=[]
-            for nombre in dicc_fantasmas:
-                if nombre != "Inky":
-                    opciones_pivot.append(nombre)
-            if len(opciones_pivot)==0: # si solo queda inky --> CONSULTAR: qué les parece que hagamos si solo queda inky? opciones: tileesquina, que haga lo mismo que blinky o que se use a sí mismo de pivot
-                self.pivot = dicc_fantasmas["Inky"]
-            else:
-                self.pivot = dicc_fantasmas[random.choice(opciones_pivot)] # para chequear: que pasa si solo está disponible inky en la partida? existe tal escenario?
+            fantasma_pivot = self
+        self.pivot = (fantasma_pivot.x, fantasma_pivot.y)
 
-    def elegir_punto_cero(self, pacman_tile, pacman_dir):
-        dx, dy = pacman_dir
+    def elegir_punto_cero(self, pacman_tile, pacman_dir_matriz):
+        dx, dy = pacman_dir_matriz
         self.punto_cero = [pacman_tile[0] + dx * 2, pacman_tile[1] + dy * 2]
 
     def calcular_vector(self):
         self.vector = [self.pivot[0]-self.punto_cero[0], self.pivot[1]-self.punto_cero[1]]
 
-    def actualizar_objetivo(self, dicc_fantasmas, pacman_tile, pacman_dir):
+    def actualizar_objetivo(self, pacman_tile, pacman_dir_matriz, lista_fants):
+        if self.saliendo:
+            self.tile_objetivo = self.objetivo_salida
+            return
         if self.modo == "Scatter":
             self.tile_objetivo = self.tile_esquina
         elif self.modo == "Chase":
-            self.elegir_pivot(dicc_fantasmas)
-            self.elegir_punto_cero(pacman_tile, pacman_dir)
+            self.elegir_fantasma_pivot(lista_fants)
+            self.elegir_punto_cero(pacman_tile, pacman_dir_matriz)
             self.calcular_vector()
-            self.tile_objetivo = (self.punto_cero[0]-self.vector[0], self.punto_cero[1]-self.vector[1])
+            self.tile_objetivo = (self.punto_cero[0]+self.vector[0], self.punto_cero[1]+self.vector[1])
+        elif self.modo == "Ojos":
+            self.tile_objetivo = self.objetivo_ghost_house
 
 class Clyde(Fantasma):
     def __init__(self, x, y, tile_esquina, tamaño_tile):
@@ -308,35 +329,63 @@ class Clyde(Fantasma):
         elif self.modo == "Ojos":
             self.tile_objetivo = self.objetivo_ghost_house
 
+class Silly(Fantasma): # su movimiento es random, pero respeta que no puede volver hacia atrás
+    def __init__(self, x, y, tile_esquina, tamaño_tile):
+        super().__init__(x, y, (250, 171, 52), tile_esquina, tamaño_tile)
+        self.nombre = 'Silly'
+        self.sprites_vivos = {
+            "ARRIBA": pygame.transform.scale(pygame.image.load('silly_arriba.jpg'), (tamaño_tile, tamaño_tile)),
+            "ABAJO": pygame.transform.scale(pygame.image.load('silly_abajo.jpg'), (tamaño_tile, tamaño_tile)),
+            "IZQUIERDA": pygame.transform.scale(pygame.image.load('silly_izq.jpg'), (tamaño_tile, tamaño_tile)),
+            "DERECHA": pygame.transform.scale(pygame.image.load('silly_der.jpg'), (tamaño_tile, tamaño_tile))
+        }
+        self.imagen_actual = self.sprites_vivos["IZQUIERDA"]
 
-class Hungry(Fantasma):
-    def __init__(self, x, y, tile_esquina):
-        super().__init__(x, y, (255, 255, 255), tile_esquina)
-        self.comida_random = 0
+    def decidir_sig_direccion_silly(self, mapa): # se aplica una logica similar al movimiento de los fantasmas en modo asustado     
+        opciones_validas = {}
+        dir_opuesta = self.obtener_direccion_opuesta(self.direccion_actual)
+        for nombre_dir, (dx, dy) in self.direcciones.items():
+            if nombre_dir == dir_opuesta:
+                continue
+            sig_x = self.x + dx
+            sig_y = self.y + dy
+            if 0 <= sig_y < len(mapa) and 0 <= sig_x < len(mapa[0]):
+                caracter_tile = mapa[sig_y][sig_x]
+                if caracter_tile in ('X'):
+                    continue
+                if caracter_tile == '-':
+                    continue
+                opciones_validas[nombre_dir] = (sig_x, sig_y)
+        if not opciones_validas:
+            self.direccion_actual = dir_opuesta # si por alguna razon no tiene a donde ir, se le permite darse vuelta 180 grados
+            return
+        self.direccion_actual = random.choice(list(opciones_validas.keys()))
 
-    def actualizar_objetivo(self, pacman_tile, lista_comida):
+    def actualizar_objetivo(self, mapa):
+        if self.saliendo:
+            self.tile_objetivo = self.objetivo_salida
+            return
         if self.modo == "Scatter":
             self.tile_objetivo = self.tile_esquina
-        elif self.modo == "Chase":
-            if len(lista_comida) > 15:
-                self.distancia_hungry_y_pacman = self.calcular_distancia((self.x,self.y), pacman_tile)
-                if self.distancia_hungry_y_pacman > 8:
-                    self.tile_objetivo = pacman_tile
-                else:
-                    self.tile_objetivo = self.tile_esquina
-            elif len(lista_comida) == 0:
-                self.tile_objetivo = pacman_tile
-            else:
-                if self.tile_objetivo not in lista_comida: #por si pacman se come la comida a la cual hungry estaba yendo durante el viaje
-                    self.tile_objetivo = lista_comida[0] # le asigno la primera comida disponible en el mapa
-                elif self.tile_objetivo == (self.x, self.y): #si llegó a la tile donde estaba yendo 
-                    self.comida_random = random.randint(0, len(lista_comida)-1) # si ya llegó, le asigno una comida random de la lista
-                    self.tile_objetivo = lista_comida[self.comida_random] 
+        elif self.modo == "Chase": # se le suma a su posicion actual la direccion random elegida
+            self.decidir_sig_direccion_silly(mapa)
+            dx, dy = self.direcciones[self.direccion_actual]
+            self.tile_objetivo = (self.x+dx, self.y+dy) 
+        elif self.modo == "Ojos":
+            self.tile_objetivo = self.objetivo_ghost_house 
 
 
-class Mysterious(Fantasma): # se mueve como pinky, pero en la pantalla aparece parpadeante y parece que se teletransporta
+class Mysterious(Fantasma): # se mueve como pinky, pero hacia atrás de pacman. en la pantalla aparece parpadeante y parece que se teletransporta
     def __init__(self, x, y, tile_esquina, tamaño_tile):
         super().__init__(x, y, (255, 184, 255), tile_esquina, tamaño_tile)
+        self.nombre = 'Mysterious'
+        self.sprites_vivos = {
+            "ARRIBA": pygame.transform.scale(pygame.image.load('mysterious_arriba.jpg'), (tamaño_tile, tamaño_tile)),
+            "ABAJO": pygame.transform.scale(pygame.image.load('mysterious_abajo.jpg'), (tamaño_tile, tamaño_tile)),
+            "IZQUIERDA": pygame.transform.scale(pygame.image.load('mysterious_izq.jpg'), (tamaño_tile, tamaño_tile)),
+            "DERECHA": pygame.transform.scale(pygame.image.load('mysterious_der.jpg'), (tamaño_tile, tamaño_tile))
+        }
+        self.imagen_actual = self.sprites_vivos["IZQUIERDA"]
 
     def actualizar_objetivo(self, pacman_tile, pacman_dir):
         if self.saliendo:
@@ -346,7 +395,7 @@ class Mysterious(Fantasma): # se mueve como pinky, pero en la pantalla aparece p
             self.tile_objetivo = self.tile_esquina
         elif self.modo == "Chase":
             dx, dy = pacman_dir
-            self.tile_objetivo = (pacman_tile[0] + dx * 4, pacman_tile[1] + dy * 4) # para que esté 4 posiciones adelante de la dirección actual de Pac-Man
+            self.tile_objetivo = (pacman_tile[0] + dx * -4, pacman_tile[1] + dy * -4) # para que esté 4 posiciones detrás de la dirección actual de Pac-Man
         elif self.modo == "Ojos":
             self.tile_objetivo = self.objetivo_ghost_house              
 

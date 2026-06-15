@@ -119,27 +119,6 @@ def pantalla_esquina (pantalla, fantasma_actual, fants_elegidos, ind_fant, color
         pantalla.blit(texto_resumen, (160, pos_y_resumen))
         pos_y_resumen += 30 
 
-def pantalla_aprender(pantalla, opciones_modo, ind_modo):
-    pantalla.fill(negro)
-    fuente_elegir = pygame.font.SysFont("Courier New", 28, bold = True)
-    text_aprender = fuente_elegir.render("Elija el modo de juego: ", True, rojo) 
-    pantalla.blit(text_aprender, (100, 80))
-    
-    pos_y = 200
-    for i, opcion in enumerate(opciones_modo):
-        if i == ind_modo:
-            color = amarillo
-        else: 
-            color = gris
-        texto = fuente_elegir.render(opcion, True, amarillo)
-        rect = texto.get_rect()
-        rect.x = 200
-        rect.y = pos_y
-        rect_grande = rect.inflate(30, 10)
-        pygame.draw.rect(pantalla, color, rect_grande, 3)
-        pantalla.blit(texto, (200, pos_y))
-        pos_y += 100 
-
 def pantalla_preparado(pantalla):
     pantalla.fill(negro)
     fuente_ready = pygame.font.SysFont("trebuchetms", 30, bold = True)
